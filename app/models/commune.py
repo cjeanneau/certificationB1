@@ -1,7 +1,9 @@
 # models/commune.py
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List, TYPE_CHECKING
-from ..crud.bien_immobilier import BienImmobilierRead
+
+#Removed d
+#from ..crud.bien_immobilier import BienImmobilierRead
 
 
 if TYPE_CHECKING:
