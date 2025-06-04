@@ -1,0 +1,15 @@
+# requirements.txt
+dotenv==0.9.9
+pandas==2.2.3
+
+requests==2.31.0
+beautifulsoup4==4.12.2
+neo4j==5.15.0
+lxml==4.9.3
+
+psycopg2-binary==2.9.10  # Il faudra peut-etre le retirer si utilisation de SQLAlchemy
+SQLAlchemy==2.0.41
+sqlmodel 
+
+fastapi 
+uvicorn
