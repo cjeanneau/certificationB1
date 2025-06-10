@@ -11,24 +11,10 @@ from sqlmodel import Session
 
 from app.models.commune import CommuneCreate  
 from app.crud.commune import commune_crud  
+
 file_location = os.path.join(DATA_DIR, "codes_communes.csv")
 
-def detect_encoding(file_path: str) -> str:
-    """
-    Détecte l'encodage d'un fichier.
-    
-    Parameters:
-        file_path (str): Chemin vers le fichier
-    
-    Returns:
-        str: L'encodage détecté
-    """
-    with open(file_path, 'rb') as file:
-        raw_data = file.read()
-        result = chardet.detect(raw_data)
-        return result['encoding']
-
-def process_communes(file_path):
+def load_communes_file(file_path : str) -> pd.DataFrame:
     """
     Traite le fichier des codes communes pour créer un DataFrame.
 
@@ -57,12 +43,30 @@ def process_communes(file_path):
     
     return df_communes
 
-def df_to_pg(df_communes):
+def detect_encoding(file_path: str) -> str:
+    """
+    Détecte l'encodage d'un fichier.
+    
+    Parameters:
+        file_path (str): Chemin vers le fichier
+    
+    Returns:
+        str: L'encodage détecté
+    """
+    with open(file_path, 'rb') as file:
+        raw_data = file.read()
+        result = chardet.detect(raw_data)
+        return result['encoding']
+
+def load_communes_to_PG(df_communes: pd.DataFrame):
     """
     Enregistre le DataFrame des communes dans la base de données PostgreSQL.
 
     Parameters:
         df_communes (pd.DataFrame): DataFrame contenant les données des communes
+    
+    Returns:
+        None
     """
     with Session(engine) as session:
         try:
@@ -82,13 +86,22 @@ def df_to_pg(df_communes):
             raise
 
 
-if __name__ == "__main__":
+def fill_communes(file_location: str = file_location):
+    """
+    Fonction principale pour remplir la base de données PostgreSQL avec les codes Insee et postaux des communes françaises.
     
-    df_communes = process_communes(file_location)
-    print(df_communes.head())
-    print(df_communes.shape)
+    Parameters:
+        file_location (str): Chemin vers le fichier CSV des codes communes
     
+    Returns:
+        None
+    """
 
     print("Enregistrement des communes dans la base de données PostgreSQL...")
-    df_to_pg(df_communes)
+    df_communes = load_communes_file(file_location)
+    load_communes_to_PG(df_communes)
     print("Enregistrement terminé.")
+
+if __name__ == "__main__":
+    file_path = os.path.join(DATA_DIR, "codes_communes.csv")
+    fill_communes(file_path)
