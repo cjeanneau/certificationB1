@@ -2,7 +2,8 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, TYPE_CHECKING
 from datetime import date
-from decimal import Decimal
+
+
 
 if TYPE_CHECKING:
     from .bien_immobilier import BienImmobilier
@@ -12,7 +13,7 @@ class TransactionDVFBase(SQLModel):
     id_bien: int = Field(foreign_key="bien_immobilier.id_bien")
     date_mutation: date = Field(index=True)
     nature_mutation: Optional[str] = Field(default=None, max_length=50)
-    valeur_fonciere: Optional[Decimal] = Field(default=None, max_digits=15, decimal_places=2, ge=0)
+    valeur_fonciere: int = Field(gt=0)
 
 class TransactionDVF(TransactionDVFBase, table=True):
     """Modèle TransactionDVF pour la base de données"""
@@ -35,8 +36,8 @@ class TransactionDVFUpdate(SQLModel):
     """Schéma pour la mise à jour d'une transaction DVF"""
     date_mutation: Optional[date] = Field(default=None)
     nature_mutation: Optional[str] = Field(default=None, max_length=50)
-    valeur_fonciere: Optional[Decimal] = Field(default=None, max_digits=15, decimal_places=2, ge=0)
+    valeur_fonciere: int = Field(gt=0)
 
 class TransactionDVFReadWithBien(TransactionDVFRead):
     """Schéma pour la lecture d'une transaction avec son bien"""
-    bien_immobilier: "BienImmobilierRead"
+    #bien_immobilier: "BienImmobilierRead"
