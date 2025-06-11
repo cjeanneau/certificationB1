@@ -1,0 +1,71 @@
+# docker-compose.yml
+# Configuration simplifiée pour développement avec Neo4j + PostgreSQL
+version: '3.8'
+
+services:
+  # ===== BASE DE DONNÉES NEO4J =====
+  neo4j:
+    image: neo4j:5.15                          # Version stable et récente
+    container_name: dev_neo4j                  # Nom fixe pour faciliter les commandes docker
+    ports:
+      - "7474:7474"                            # Interface web Neo4j Browser (http://localhost:7474)
+      - "7687:7687"                            # Port Bolt pour connexions Python (bolt://localhost:7687)
+    environment:
+      # Authentification personnalisée
+      - NEO4J_AUTH=neo4j/admin_neo4j           # Format: user/password
+      
+      # Plugin APOC pour fonctions avancées d'opérations sur graphes
+      - NEO4J_PLUGINS=["apoc"]                 # Active le plugin APOC
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*  # Autorise toutes les procédures APOC
+      
+      # Configuration de développement (optionnel - pour de meilleures perfs)
+      #- NEO4J_dbms_memory_heap_initial__size=512M
+      #- NEO4J_dbms_memory_heap_max__size=1G
+    volumes:
+      # Persistance des données Neo4j (survit aux redémarrages)
+      - neo4j_data:/data
+      
+      # Logs pour debugging
+      - neo4j_logs:/logs
+      
+      # Dossier d'import pour fichiers CSV/JSON (accessible via LOAD CSV)
+      - neo4j_import:/var/lib/neo4j/import
+    restart: unless-stopped                    # Redémarre automatiquement sauf si arrêté manuellement
+
+  # ===== BASE DE DONNÉES POSTGRESQL =====
+  postgres:
+    image: postgres:15                         # Version LTS stable
+    container_name: dev_postgres               # Nom fixe pour faciliter les commandes docker
+    ports:
+      - "5432:5432"                            # Port standard PostgreSQL (localhost:5432)
+    environment:
+      # Authentification et base par défaut
+      - POSTGRES_USER=admin                    # Utilisateur principal
+      - POSTGRES_PASSWORD=admin_postgres       # Mot de passe
+      - POSTGRES_DB=immo_db                    # Base de données créée automatiquement
+      
+      # Configuration locale (optionnel)
+      #- POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=fr_FR.UTF-8 --lc-ctype=fr_FR.UTF-8
+    volumes:
+      # Persistance des données PostgreSQL
+      - postgres_data:/var/lib/postgresql/data
+      
+      # Scripts d'initialisation (optionnel)
+      # - ./init-scripts:/docker-entrypoint-initdb.d
+    restart: unless-stopped                    # Redémarre automatiquement sauf si arrêté manuellement
+
+# ===== VOLUMES PERSISTANTS =====
+# Ces volumes stockent les données sur le disque dur de ton PC
+# Ils survivent aux arrêts/redémarrages des conteneurs
+volumes:
+  neo4j_data:                                  # Données Neo4j (graphes, index, etc.)
+    driver: local
+  neo4j_logs:                                  # Logs Neo4j pour debugging
+    driver: local  
+  neo4j_import:                                # Dossier d'import Neo4j
+    driver: local
+  postgres_data:                               # Données PostgreSQL (tables, index, etc.)
+    driver: local
+
+# Note: Pas de réseau personnalisé car ton app Python tourne en local
+# Elle se connectera via localhost:7687 (Neo4j) et localhost:5432 (PostgreSQL)
