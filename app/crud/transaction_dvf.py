@@ -28,6 +28,15 @@ class TransactionDVFCRUD:
         )
         return list(session.exec(statement).all())
     
+    def get_by_all_fields(self, session: Session, transaction_data: TransactionDVFCreate) -> Optional[TransactionDVF]:
+        statement = select(TransactionDVF).where(
+        TransactionDVF.id_bien == transaction_data.id_bien,
+        TransactionDVF.date_mutation == transaction_data.date_mutation,
+        TransactionDVF.nature_mutation == transaction_data.nature_mutation,
+        TransactionDVF.valeur_fonciere == transaction_data.valeur_fonciere
+        )
+        return session.exec(statement).first()
+    
     def get_by_bien(self, session: Session, id_bien: int) -> List[TransactionDVF]:
         """Récupère toutes les transactions d'un bien"""
         statement = select(TransactionDVF).where(

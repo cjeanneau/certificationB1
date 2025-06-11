@@ -10,7 +10,7 @@ def main():
     """Fonction principale pour créer la base de données et les tables"""
     try:
         # Création des tables
-        create_db_and_tables(drop=False) # Mettre a True pour supprimer les tables existantes
+        create_db_and_tables(drop=True) # Mettre a True pour supprimer les tables existantes
         
         # Test de la connexion avec une session
         with get_session_sync() as session:  

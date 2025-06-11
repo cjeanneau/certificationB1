@@ -13,6 +13,7 @@ from app.crud.bien_immobilier import bien_immobilier_crud
 from app.models.bien_immobilier import BienImmobilierCreate
 from app.models.transaction_dvf import TransactionDVFCreate
 from app.crud.transaction_dvf import transaction_dvf_crud 
+import time
 
 
 
@@ -110,8 +111,6 @@ def clean_dvf_data(df: pd.DataFrame) -> pd.DataFrame:
     
     # Supprimer les doublons (conserver la première occurrence)
     df = df.drop_duplicates()
-    print("Compte les Nan avant ")
-    print(df['Prefixe de section'].isna().sum()) # On vérifie s'il y a des NaN dans la colonne 'Prefixe de section'
     # On va compléter les NaN des Surfaces et nombre de pièces par 0
     df.loc[:, 'Surface reelle bati'] = df['Surface reelle bati'].fillna(0)
     df.loc[:, 'Surface terrain'] = df['Surface terrain'].fillna(0)
@@ -126,8 +125,6 @@ def clean_dvf_data(df: pd.DataFrame) -> pd.DataFrame:
     df.loc[:, 'Prefixe de section'] = df['Prefixe de section'].fillna('')
     df.loc[:, 'Section'] = df['Section'].fillna('')
     
-    print("Compte les Nan apres ")
-    print(df['Prefixe de section'].isna().sum()) 
     # Le prix d'un terrain étant insignifiant dans le prix d'un bien immobilier,
     # nous allons supprimer les lignes : 
     #     dont le type de local est Nan car ils n'ont pas de surface bati 
@@ -188,13 +185,7 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
     Returns:
         None
     """
-    print(df['Prefixe de section'].dtype)
-    print("Compte les Nan avant le for ")
-    print(df['Prefixe de section'].isna().sum()) 
-
     for index, row in df.iterrows():
-        print(row['Prefixe de section'])
-        print(type(row['Prefixe de section']))
         try:
             # Construction de l'adresse normalisée
             adresse_parts = []
@@ -205,8 +196,6 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
             if pd.notna(row['Voie']) and row['Voie'].strip():
                 adresse_parts.append(row['Voie'].strip())
             adresse_normalisee = ' '.join(adresse_parts) if adresse_parts else None
-            print(f"Adresse normalisée: {adresse_normalisee}")
-            print(type(adresse_normalisee))
         
             # Construction du code INSEE complet
             code_dept = safe_int_conversion(row['Code departement']) #convertit string en entier
@@ -217,19 +206,10 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
             else:
                 print(f"Le code insee commune n'est pas identifiable, l'enregistrement est ignorée")
                 continue    #On passe à la ligne suivante
-            print(f"Code INSEE complet: {code_insee_commune}")
-            print(type(code_insee_commune))
-
 
             # Construction de la référence cadastrale
-            #if pd.notna(row['Prefixe de section']) and pd.notna(row['Section']) and pd.notna(row['No plan']):
-            print(f"Prefixe de section: {type(row['Prefixe de section'])}")
-            print(f"Section: {type(row['Section'])}")
-            print(f"No plan: {type(str(row['No plan']))}")
             reference_cadastrale_parcelle = row['Prefixe de section'] + row['Section'] + str(row['No plan'])
-            print(f"Référence cadastrale parcelle: {reference_cadastrale_parcelle}")    
-            input()
-        
+
             bien = BienImmobilierCreate(
                 code_insee_commune=code_insee_commune,
                 adresse_normalisee=adresse_normalisee,
@@ -250,8 +230,16 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                 )
             
             with Session(engine) as session:
-                try:
-                        created_bien = bien_immobilier_crud.create(session, bien)
+                try:    
+                         # Vérifier si le bien existe déjà avec tous les champs
+                        existing_bien = bien_immobilier_crud.get_by_all_fields(session, bien)
+                        if existing_bien:
+                            print(f"Bien existant trouvé avec ID: {existing_bien.id_bien}")
+                            created_bien = existing_bien
+                        else:
+                            created_bien = bien_immobilier_crud.create(session, bien)
+                            print(f"Nouveau bien créé avec ID: {created_bien.id_bien}")
+                        print(f"Ligne d'index {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
                         # Maintenant que le bien est créé, on peut enregistrer la transaction
                         transaction = TransactionDVFCreate(
                             id_bien=created_bien.id_bien,
@@ -259,7 +247,15 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                             nature_mutation=row['Nature mutation'],
                             valeur_fonciere=row['Valeur fonciere']
                         )
-                        created_transaction = transaction_dvf_crud.create(session, transaction)
+                        # Vérifier si la transaction existe déjà
+                        existing_transaction = transaction_dvf_crud.get_by_all_fields(session, transaction)
+                        if existing_transaction:
+                            print(f"Transaction existante trouvée avec ID: {existing_transaction.id_transaction}")
+                            created_transaction = existing_transaction
+                        else:
+                            created_transaction = transaction_dvf_crud.create(session, transaction)
+                            print(f"Nouvelle transaction créée avec ID: {created_transaction.id_transaction}")
+
                         print(f"Transaction DVF {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
                 except Exception as e:
                     print(f"Erreur lors de la création du bien: {e}")
@@ -276,34 +272,30 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
 
 
 def fill_dvf():
+    """
+    Fonction principale pour charger, nettoyer et enregistrer les données DVF dans la base de données PostgreSQL.
     
-    list_years = [2024, 2023]
+    Elle traite les fichiers contenu dans {DATA_DIR} qui commencent par "ValeursFoncieres-" et se terminent par ".txt".
+    Elle charge les données dans un DataFrame, les nettoie, puis les enregistre dans la base de données postgreSQL.
+    
+    """
+    start_time = time.time()
+    intermediate_time = start_time
     for file in os.listdir(DATA_DIR):
         if file.startswith("ValeursFoncieres-") & file.endswith(".txt"):
-            input(f" Pour traiter le fichier {file}, Appuyez sur Entrée ... ou Ctrl+C pour quitter.")
+            
             file_path = os.path.join(DATA_DIR, file)
             df = load_dvf_file(file_path)
-            print(f"Chargement du fichier DVF terminé. Nombre de lignes : {len(df)}")
+            print(f"{file} : Chargement du fichier DVF terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes : {len(df)}")
             df_cleaned = clean_dvf_data(df)
-            print(f"Nettoyage du DataFrame terminé. Nombre de lignes après nettoyage : {len(df_cleaned)}")
-            df_cleaned.info()
-            sample_df = df_cleaned.head(2)
-            print(sample_df['Prefixe de section'].dtype)
-        
-            load_dvf_to_PG(sample_df, index=0)
-            #output_file = f"dvf_{year}_cleaned.csv"
-            #file_path = os.path.join(os.getcwd(), "data", "01_DVF", output_file)
-            #save_dvf__df_to_csv(df_cleaned, file_path)
-            
-            #print(f"Traitement du fichier {file} terminé avec succès !")
-            #print (f"Nombre de lignes dans le DataFrame nettoyé : {len(df_cleaned)}")
-            #df_cleaned.info()
-
-    print("Tous les fichiers DVF ont été traités et sauvegardés avec succès !")
-    #print(f"Fichiers sauvegardés dans le répertoire : {os.path.join(os.getcwd(), 'data', '01_DVF')}")
+            print(f"{file} : Nettoyage du DataFrame terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes après nettoyage : {len(df_cleaned)}")
+            load_dvf_to_PG(df_cleaned, index=0)
+            intermediate_time = time.time()
+            print(f"{file} : Chargement en Base de Données terminé en {(intermediate_time - start_time):.2f} secondes.")
+    print("\nTous les fichiers DVF ont été traités et sauvegardés avec succès !")
     print("Fin du script.")
-
-
+    end_time = time.time()
+    print(f"\nTemps total: {(end_time - start_time):.2f} secondes")
 
 
 if __name__ == "__main__":
