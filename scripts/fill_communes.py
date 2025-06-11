@@ -86,7 +86,7 @@ def load_communes_to_PG(df_communes: pd.DataFrame):
             raise
 
 
-def fill_communes(file_location: str = file_location):
+def fill_communes():
     """
     Fonction principale pour remplir la base de données PostgreSQL avec les codes Insee et postaux des communes françaises.
     
@@ -96,12 +96,12 @@ def fill_communes(file_location: str = file_location):
     Returns:
         None
     """
-
+    file_location = os.path.join(DATA_DIR, "codes_communes.csv")
     print("Enregistrement des communes dans la base de données PostgreSQL...")
     df_communes = load_communes_file(file_location)
     load_communes_to_PG(df_communes)
     print("Enregistrement terminé.")
 
 if __name__ == "__main__":
-    file_path = os.path.join(DATA_DIR, "codes_communes.csv")
-    fill_communes(file_path)
+    
+    fill_communes()

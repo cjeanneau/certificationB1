@@ -6,7 +6,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def main():
+def create_db_pgsql():
     """Fonction principale pour créer la base de données et les tables"""
     try:
         # Création des tables
@@ -25,4 +25,4 @@ def main():
         logger.info("Base de données créée avec succès")
 
 if __name__ == "__main__":
-    main()
+    create_db_pgsql()
