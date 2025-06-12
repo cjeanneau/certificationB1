@@ -2,6 +2,7 @@ from scripts.create_db_pgsql import create_db_pgsql
 from scripts.fill_communes import fill_communes
 from scripts.fill_dvf import fill_dvf
 
+delete_table = True  # Mettre à True pour supprimer les tables existantes
 
 def main():
     """
@@ -11,8 +12,8 @@ def main():
         None
     """
     print("Création de la base de données PostgreSQL et des tables...")
-    create_db_pgsql()
-    
+    create_db_pgsql(drop_tables=delete_table)  
+
     print("Remplissage des communes...")
     fill_communes()
     
