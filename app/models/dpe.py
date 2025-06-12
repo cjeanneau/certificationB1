@@ -12,8 +12,13 @@ class DPEBase(SQLModel):
     date_etablissement_dpe: date = Field(index=True)
     etiquette_dpe: Optional[str] = Field(default=None, max_length=5, index=True)
     etiquette_ges: Optional[str] = Field(default=None, max_length=5, index=True)
+    adresse_ban: Optional[str] = Field(default=None, max_length=255, index=True)
+    identifiant_ban: Optional[str] = Field(default=None, max_length=50, index=True)
+    surface_habitable_logement: Optional[float] = Field(default=None, ge=0)
+    adresse_brut: Optional[str] = Field(default=None, max_length=255, index=True)
+    code_postal_brut: Optional[str] = Field(default=None, max_length=10, index=True)
     score_ban: Optional[float] = Field(default=None, ge=0, le=1)
-    score_ademe: Optional[float] = Field(default=None, ge=0)
+    numero_dpe: Optional[str] = Field(default=None, max_length=50, index=True)
 
 class DPE(DPEBase, table=True):
     """Modèle DPE pour la base de données"""
@@ -38,7 +43,6 @@ class DPEUpdate(SQLModel):
     etiquette_dpe: Optional[str] = Field(default=None, max_length=5)
     etiquette_ges: Optional[str] = Field(default=None, max_length=5)
     score_ban: Optional[float] = Field(default=None, ge=0, le=1)
-    score_ademe: Optional[float] = Field(default=None, ge=0)
 
 class DPEReadWithBien(DPERead):
     """Schéma pour la lecture d'un DPE avec son bien"""
