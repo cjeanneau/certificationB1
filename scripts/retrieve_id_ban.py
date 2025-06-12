@@ -1,14 +1,8 @@
 #Requete API pour récupérer l'"id" (identifiant_ban) à partir d'une adresse, d'un postcode et code insee,
 # à partir de : api-adresse.data.gouv.fr/search/
-import os
+
 import requests
-from scripts.fill_dvf import load_dvf_file, clean_dvf_data
-from config import DATA_DIR
-from app.utils.parser import safe_int_conversion
-import pandas as pd
-
-
-
+import time
 
 def retrieve_id_ban(adresse:str , code_insee:str) -> tuple:
     """
@@ -47,6 +41,9 @@ def retrieve_id_ban(adresse:str , code_insee:str) -> tuple:
     except Exception as e:
         print(f"Exception lors de la récupération de l'ID BAN: {str(e)}")
         return None, None
+    finally:
+        # Pause pour éviter de surcharger l'API qui esr limitée à 50 requetes/seconde/IP
+        time.sleep(0.02)
 
 def main():
     """
@@ -55,6 +52,11 @@ def main():
     Returns:
         None
     """
+    from scripts.fill_dvf import load_dvf_file, clean_dvf_data
+    import os
+    from app.utils.parser import safe_int_conversion
+    from config import DATA_DIR
+    import pandas as pd
 
     # Chemin du fichier DVF
     file_path = os.path.join(DATA_DIR,"ValeursFoncieres-2023.txt")
