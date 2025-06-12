@@ -19,7 +19,7 @@ class BienImmobilierBase(SQLModel):
     nombre_pieces_principales: Optional[int] = Field(default=None, ge=0)
     surface_terrain_totale: Optional[int] = Field(default=None, ge=0)
     source_info_principale: Optional[str] = Field(default=None, max_length=10)
-    id_ban = Optional[str] = Field(default=None, max_length=50, index=True)
+    id_ban: Optional[str] = Field(default=None, max_length=50, index=True)
     score_ban: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 class BienImmobilier(BienImmobilierBase, table=True):
@@ -52,7 +52,7 @@ class BienImmobilierUpdate(SQLModel):
     nombre_pieces_principales: Optional[int] = Field(default=None, ge=0)
     surface_terrain_totale: Optional[int] = Field(default=None, ge=0)
     source_info_principale: Optional[str] = Field(default=None, max_length=10)
-    id_ban = Optional[str] = Field(default=None, max_length=50, index=True)
+    id_ban: Optional[str] = Field(default=None, max_length=50, index=True)
     score_ban: Optional[float] = Field(default=None, ge=0.0, le=1.0)
 
 
