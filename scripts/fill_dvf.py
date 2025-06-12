@@ -14,7 +14,7 @@ from app.models.bien_immobilier import BienImmobilierCreate
 from app.models.transaction_dvf import TransactionDVFCreate
 from app.crud.transaction_dvf import transaction_dvf_crud 
 import time
-
+from scripts.retrieve_id_ban import retrieve_id_ban
 
 
 def load_dvf_file(file_path: str) -> pd.DataFrame:
@@ -209,7 +209,8 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
 
             # Construction de la référence cadastrale
             reference_cadastrale_parcelle = row['Prefixe de section'] + row['Section'] + str(row['No plan'])
-
+            id, score = retrieve_id_ban(adresse_normalisee, code_insee_commune)
+           
             bien = BienImmobilierCreate(
                 code_insee_commune=code_insee_commune,
                 adresse_normalisee=adresse_normalisee,
@@ -219,7 +220,9 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                 surface_reelle_bati=row['Surface reelle bati'] if pd.notna(row['Surface reelle bati']) else None,
                 nombre_pieces_principales=row['Nombre pieces principales'] if pd.notna(row['Nombre pieces principales']) else None,
                 surface_terrain_totale=row['Surface terrain'] if pd.notna(row['Surface terrain']) else None,
-                source_info_principale="DVF"
+                source_info_principale="DVF",
+                id_ban = id if id else None,
+                score_ban = score if score else None
             )
 
             transaction = TransactionDVFCreate(
@@ -267,10 +270,6 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
     print(f"Toutes les transactions DVF ont été traitées et enregistrées avec succès jusqu'à l'index : {index} !")
 
 
-
-
-
-
 def fill_dvf():
     """
     Fonction principale pour charger, nettoyer et enregistrer les données DVF dans la base de données PostgreSQL.
@@ -300,7 +299,17 @@ def fill_dvf():
 
 if __name__ == "__main__":
     
-    fill_dvf()
+    # test retrieve_id_ban()
+    file = "ValeursFoncieres-2023.txt"
+    file_path = os.path.join(DATA_DIR, file)
+    df = load_dvf_file(file_path)
+    df_cleaned = clean_dvf_data(df)
+    df = df_cleaned.head(50)
+    print(len(df))
+    start_time = time.time()
+    load_dvf_to_PG(df, index=0)
+    end_time = time.time()
+    print(f"Temps total pour le test : {(end_time - start_time):.2f} secondes")
 
 
 
