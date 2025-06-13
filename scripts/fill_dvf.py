@@ -9,13 +9,16 @@ from config import DATA_DIR
 from app.database import engine  
 from sqlmodel import Session
 from app.utils.parser import safe_int_conversion
-from app.crud.bien_immobilier import bien_immobilier_crud
 from app.models.bien_immobilier import BienImmobilierCreate
+from app.crud.bien_immobilier import bien_immobilier_crud
+
 from app.models.transaction_dvf import TransactionDVFCreate
 from app.crud.transaction_dvf import transaction_dvf_crud 
+from app.models.dpe import DPECreate
+from app.crud.dpe import dpe_crud
 import time
 from scripts.retrieve_id_ban import retrieve_id_ban
-
+from scripts.retrieve_dpe import retrieve_dpe_by_identifiant_ban
 
 def load_dvf_file(file_path: str) -> pd.DataFrame:
     """
@@ -264,9 +267,45 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                     print(f"Erreur lors de la création du bien: {e}")
                     session.rollback()  # Annule la transaction en cas d'erreur
                     continue
-
+            
+            # Ajout des donnees DPE si elles existent
+            print(f"identifiant ban : {id}")
+            if id:
+                dpes =retrieve_dpe_by_identifiant_ban(id)
+                if dpes:
+                    with Session(engine) as session:
+                        try:
+                            for dpe in dpes:
+                                dpe_data = DPECreate(
+                                    id_bien=created_bien.id_bien,
+                                    date_etablissement_dpe=dpe.get('date_etablissement_dpe'),
+                                    etiquette_dpe=dpe.get('etiquette_dpe'),
+                                    etiquette_ges=dpe.get('etiquette_ges'),
+                                    adresse_ban=dpe.get('adresse_ban'),
+                                    identifiant_ban=dpe.get('identifiant_ban'),
+                                    surface_habitable_logement=dpe.get('surface_habitable_logement'),
+                                    adresse_brut=dpe.get('adresse_brut'),
+                                    code_postal_brut=str(dpe.get('code_postal_brut')),
+                                    score_ban=dpe.get('score_ban'),
+                                    numero_dpe=dpe.get('numero_dpe')
+                                )
+                                # Vérifier si le DPE existe déjà
+                                existing_dpe = dpe_crud.get_by_numero_dpe(session, dpe_data.numero_dpe)
+                                if existing_dpe:
+                                    print(f"DPE existant trouvé pour l'identifiant BAN: {dpe_data.identifiant_ban}")    
+                                else:
+                                    # Si le DPE n'existe pas, on l'enregistre
+                                    print(f"Enregistrement du DPE pour l'identifiant BAN: {dpe_data.identifiant_ban}")
+                                    # On crée le DPE
+                                    created_dpe = dpe_crud.create(session, dpe_data)
+                                    print(f"DPE ajouté pour le bien ID: {created_bien.id_bien}")
+                        except Exception as e:
+                            print(f"Erreur lors de l'enregistrement du DPE: {e}")
+                            session.rollback()
+                            continue                
         except Exception as e:
             print(f"Erreur ligne idex : {index}: {e}")
+    
     print(f"Toutes les transactions DVF ont été traitées et enregistrées avec succès jusqu'à l'index : {index} !")
 
 
