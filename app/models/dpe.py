@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 class DPEBase(SQLModel):
     """Classe de base pour DPE"""
-    id_bien: int = Field(foreign_key="bien_immobilier.id_bien")
+    id_bien: Optional[int] = Field(default=None, foreign_key="bien_immobilier.id_bien")
     date_etablissement_dpe: date = Field(index=True)
     etiquette_dpe: Optional[str] = Field(default=None, max_length=5, index=True)
     etiquette_ges: Optional[str] = Field(default=None, max_length=5, index=True)
