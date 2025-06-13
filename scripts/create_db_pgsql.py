@@ -29,4 +29,4 @@ def create_db_pgsql(drop_tables: bool = False):
         logger.info("Base de données créée avec succès")
 
 if __name__ == "__main__":
-    create_db_pgsql()
+    create_db_pgsql(drop_tables=True)  # Mettre à True pour supprimer les tables existantes

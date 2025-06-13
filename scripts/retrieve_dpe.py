@@ -10,6 +10,21 @@
 
 import requests
 import time
+
+fields = [
+        "numero_dpe",
+        "date_etablissement_dpe",
+        "adresse_brut",
+        "code_postal_brut",
+        "adresse_ban",
+        "identifiant_ban",
+        "score_ban",
+        "surface_habitable_logement",
+        "etiquette_dpe",
+        "etiquette_ges"
+    ]
+
+
 def retrieve_all_dpe_by_date(date_etablissement: str) -> list:
     """
     Récupère TOUS les DPE émis à une date donnée (avec pagination via next URL).
@@ -25,18 +40,7 @@ def retrieve_all_dpe_by_date(date_etablissement: str) -> list:
     page_size = 1000
     next_url = None
     page_num = 1
-    fields = [
-        "numero_dpe",
-        "date_etablissement_dpe",
-        "adresse_brut",
-        "code_postal_brut",
-        "adresse_ban",
-        "identifiant_ban",
-        "score_ban",
-        "surface_habitable_logement",
-        "etiquette_dpe",
-        "etiquette_ges"
-    ]
+    
     while True:
         if next_url:
             # Utiliser l'URL complète fournie par l'API
@@ -103,18 +107,7 @@ def retrieve_all_dpe_by_date_bak(date_etablissement: str) -> list:
     all_results = []
     page = 1
     page_size = 1000
-    fields = [
-        "numero_dpe",
-        "date_etablissement_dpe",
-        "adresse_brut",
-        "code_postal_brut",
-        "adresse_ban",
-        "identifiant_ban",
-        "score_ban",
-        "surface_habitable_logement",
-        "etiquette_dpe",
-        "etiquette_ges"
-    ]
+    
     
     while True:
         params = {
@@ -150,6 +143,39 @@ def retrieve_all_dpe_by_date_bak(date_etablissement: str) -> list:
     print(f"Total final: {len(all_results)} DPE pour le {date_etablissement}")
     return all_results
 
+def retrieve_dpe_by_identifiant_ban(identifiant_ban: str) -> dict:
+    """
+    Récupère un DPE par son identifiant BAN.
+    
+    Args:
+        identifiant_ban (str): L'identifiant BAN du DPE à récupérer.
+        
+    Returns:
+        dict: Le DPE correspondant à l'identifiant BAN, ou None si non trouvé.
+    """
+    base_url_dpe = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant/lines"
+    params = {
+        'qs': f"identifiant_ban:{identifiant_ban}",
+        'select': f"{','.join(fields)}"
+    }
+    
+    try:
+        response = requests.get(base_url_dpe, params=params, timeout=30)
+        response.raise_for_status()
+        data = response.json()
+        
+        results = data.get('results', [])
+        if results:
+            return results  # Retourne le premier résultat
+        else:
+            print(f"Aucun DPE trouvé pour l'identifiant BAN: {identifiant_ban}")
+            return None
+            
+    except requests.RequestException as e:
+        print(f"Erreur lors de la récupération du DPE: {str(e)}")
+        return None
+    
+
 def main():
     """
     Fonction de test de la fonction retrieve_all_dpe_by_date(date_etablissement)
@@ -162,7 +188,7 @@ def main():
     
     if dpe_list:
         print(f"Nombre total de DPE récupérés pour le {date_etablissement}: {len(dpe_list)}")
-        """print("Exemples de DPE récupérés:")
+        print("Exemples de DPE récupérés:")
         for dpe in dpe_list[:10]:
             print(f"numero_dpe : {dpe.get('numero_dpe')} \
                 \ndate_etablissement_dpe : {dpe.get('date_etablissement_dpe')} \
@@ -174,9 +200,14 @@ def main():
                 \nsurface_habitable_logement : {dpe.get('surface_habitable_logement')} \
                 \nEtiquette DPE: {dpe.get('etiquette_dpe')} \
                 \nEtiquette GES: {dpe.get('etiquette_ges')}")  
-            print("-" * 80)"""
+            print("-" * 80)
     else:
         print("Aucun DPE trouvé pour cette date.")
 
 if __name__ == "__main__":
-    main()
+    dpe = retrieve_dpe_by_identifiant_ban("23042_rthzkm_00007")
+    print(dpe)
+    dpe = retrieve_dpe_by_identifiant_ban("41269_0870_00051")
+    print(dpe)
+    dpe = retrieve_dpe_by_identifiant_ban("42218_4370_00030")
+    print(dpe)

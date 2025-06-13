@@ -12,10 +12,10 @@ def main():
         None
     """
     print("Création de la base de données PostgreSQL et des tables...")
-    create_db_pgsql(drop_tables=delete_table)  
+    #create_db_pgsql()  
 
     print("Remplissage des communes...")
-    fill_communes()
+    #fill_communes()
     
     print("Remplissage des transactions DVF...")
     fill_dvf()
