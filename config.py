@@ -11,14 +11,19 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 load_dotenv(os.path.join(BASE_DIR, ".env"), override=True)
 
 
+# PostgreSQL configuration
 DB_NAME = os.getenv("DB_NAME")
 PG_USER = os.getenv("PG_USER") # Exemple : un utilisateur dédié à votre projet
 PG_PASSWORD = os.getenv("PG_PASSWORD") # Assurez-vous d'utiliser un mot de passe sécurisé
 PG_HOST = os.getenv("PG_HOST")
 PG_PORT = os.getenv("PG_PORT")
-
-# URL de connexion PostgreSQL
 DATABASE_URL = f"postgresql://{PG_USER}:{PG_PASSWORD}@{PG_HOST}:{PG_PORT}/{DB_NAME}"
+
+# Neo4j configuration
+NEO4J_URI = os.getenv("NEO4J_URI")
+NEO4J_USER = os.getenv("NEO4J_USER")  # Exemple : un utilisateur dédié à votre projet
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")  # Assurez-vous d'utiliser un mot de passe sécurisé
+
 
 #FastAPI
 
