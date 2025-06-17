@@ -1,5 +1,8 @@
-#Requete API pour récupérer l'"id" (identifiant_ban) à partir d'une adresse, d'un postcode et code insee,
+# data_process/external_api/retrieve_id_ban.py
+
+# Requete API pour récupérer l'"id" (identifiant_ban) à partir d'une adresse et du code insee,
 # à partir de : api-adresse.data.gouv.fr/search/
+# LIMITATION :  50 requetes/seconde/IP
 
 import requests
 import time
@@ -45,13 +48,15 @@ def retrieve_id_ban(adresse:str , code_insee:str) -> tuple:
         # Pause pour éviter de surcharger l'API qui esr limitée à 50 requetes/seconde/IP
         time.sleep(0.02)
 
-def main():
+def test():
     """
     Fonction de test de la fonction  retrieve_id_ban(adresse, code_insee)
     
     Returns:
         None
     """
+
+
     from scripts.fill_dvf import load_dvf_file, clean_dvf_data
     import os
     from app.utils.parser import safe_int_conversion
@@ -106,7 +111,8 @@ def main():
     return
     
 if __name__ == "__main__":
-    main()
-
+    print("Test de la fonction retrieve_id_ban et un peu plus...")
+    #test()
+    
 
 

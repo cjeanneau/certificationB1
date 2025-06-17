@@ -1,3 +1,5 @@
+# data_process/external_api/retrieve_dpe.py
+
 # fonctions de récupération d'un dpe émis après juillet 2021.
 # à partir de https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant/
 # Documentation : https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant/api-docs.json
@@ -28,6 +30,7 @@ fields = [
 def retrieve_all_dpe_by_date(date_etablissement: str) -> list:
     """
     Récupère TOUS les DPE émis à une date donnée (avec pagination via next URL).
+    
     Args:
         date_etablissement (str): La date d'établissement du DPE au format 'YYYY-MM-DD'.
     Returns:
@@ -88,7 +91,7 @@ def retrieve_all_dpe_by_date(date_etablissement: str) -> list:
     return all_results
 
 
-def retrieve_all_dpe_by_date_bak(date_etablissement: str) -> list:
+def retrieve_all_dpe_by_date_using_pagination(date_etablissement: str) -> list:
     """
     Récupère TOUS les DPE émis à une date donnée (avec pagination).
     *** Limits : L'API ne fournit pqas plus de 10000 résultats avec cette methode. ***
@@ -176,7 +179,7 @@ def retrieve_dpe_by_identifiant_ban(identifiant_ban: str) -> dict:
         return None
     
 
-def main():
+def test_retrieve_all():
     """
     Fonction de test de la fonction retrieve_all_dpe_by_date(date_etablissement)
     
@@ -204,10 +207,27 @@ def main():
     else:
         print("Aucun DPE trouvé pour cette date.")
 
-if __name__ == "__main__":
+def test_retrieve_by_identifiant_ban():
+    """
+    Fonction de test de la fonction retrieve_dpe_by_identifiant_ban(identifiant_ban)
+
+    Returns:
+        None
+    """
+
     dpe = retrieve_dpe_by_identifiant_ban("23042_rthzkm_00007")
     print(dpe)
     dpe = retrieve_dpe_by_identifiant_ban("41269_0870_00051")
     print(dpe)
     dpe = retrieve_dpe_by_identifiant_ban("42218_4370_00030")
     print(dpe)
+       
+if __name__ == "__main__":
+    print("Tests de récupération des DPE...")
+    # Test de la récupération de tous les DPE par date
+    #test_retrieve_all()
+
+    # Test de la récupération d'un DPE par identifiant BAN
+    #test_retrieve_by_identifiant_ban()
+
+    

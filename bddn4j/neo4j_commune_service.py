@@ -1,4 +1,4 @@
-# app/services/neo4j_commune_service.py
+# bddn4j/neo4j_commune_service.py
 from typing import List, Dict, Optional
 from .neo4j_connection import neo4j_service
 

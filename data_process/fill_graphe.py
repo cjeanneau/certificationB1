@@ -1,13 +1,13 @@
 
 import sys
 import os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from scripts.scrap_city import get_soup, get_communes_limitrophes, get_infos_commune, get_commune_name
-from scripts.neo4j_commune_service import commune_graph_service
 import time
 import logging
 
+from data_process import get_soup, get_communes_limitrophes, get_infos_commune, get_commune_name
+from bddn4j import commune_graph_service
+
+# Configuration du logger
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -136,7 +136,7 @@ def initialize_database_with_seed():
         nom="Tours",
         url=url_tours,
     )
-    logger.info("🏛️ Commune de départ 'Tours' créée")
+    logger.info("Commune de départ 'Tours' créée")
 
 def run_scrapping_iterations(limitation_region: str, max_iterations: int = 2):
     """Execute plusieurs itérations de scrapping"""
@@ -146,23 +146,30 @@ def run_scrapping_iterations(limitation_region: str, max_iterations: int = 2):
         has_communes = process_communes_batch(limitation_region)
         
         if not has_communes:
-            logger.info("🎉 Aucune commune à traiter - arrêt des itérations")
+            logger.info("Aucune commune à traiter - arrêt des itérations")
             break
         
         if iteration < max_iterations:
-            logger.info("⏸️ Pause entre itérations...")
+            logger.info("Pause entre itérations...")
             time.sleep(2)
 
-if __name__ == "__main__":
-    limitation_region = "Centre-Val de Loire"
+def fill_graphe():
+    """
+    Fonction principale pour remplir le graphe des communes limitrophes.
+    Elle initialise la base de données avec Tours, puis exécute les itérations de scrapping.
+    """
+    logger.info("Début du processus de scrapping des communes limitrophes")
     
-    #On efface la base de donnees Neo4j avant de commencer
-    commune_graph_service.clear_database()
-
-    # 1. Initialiser la base avec Tours
+    # Initialiser la base de données avec la commune de départ
     initialize_database_with_seed()
     
-    # 2. Exécuter les itérations de scrapping
-    run_scrapping_iterations(limitation_region, max_iterations=20)
-    
+    # Exécuter les itérations de scrapping
+    run_scrapping_iterations(limitation_region="Centre-Val de Loire", max_iterations=20)
+
     logger.info("Fin du processus de scrapping")
+
+
+# data_process/fill_graphe.py
+if __name__ == "__main__":
+    fill_graphe()
+    

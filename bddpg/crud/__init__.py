@@ -1,7 +1,7 @@
 # crud/__init__.py
-"""
+
 from .commune import CommuneCRUD, commune_crud
-from .bien_immobilier import bien_immobilier_crud
+from .bien_immobilier import BienImmobilierCRUD, bien_immobilier_crud
 from .transaction_dvf import TransactionDVFCRUD, transaction_dvf_crud
 from .dpe import DPECRUD, dpe_crud
 
@@ -18,4 +18,3 @@ __all__ = [
     "dpe_crud",
 ]
 
-"""

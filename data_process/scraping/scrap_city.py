@@ -1,8 +1,8 @@
+# data_process/scraping/scrap_city.py 
+
 import requests
 from bs4 import BeautifulSoup
-import time
-import pandas as pd
-import logging
+
 
 base_url = "https://fr.wikipedia.org"
 
@@ -10,13 +10,12 @@ headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
     }
 
-# verif robots.txt
-#robots_url = f"{base_url}/robots.txt" 
-#response = requests.get(robots_url)
-#print("Règles robots.txt : ")
-#print(response.text[:500])  
-
-### On peut scrapper la page car il n'y a pas de restriction dans le fichier robots.txt
+def verif_robots():
+    """Vérifie les règles du fichier robots.txt pour le site"""
+    robots_url = f"{base_url}/robots.txt"
+    response = requests.get(robots_url)
+    print("Règles robots.txt : ")
+    print(response.text[:1000])  
 
 
 def get_soup(url: str) -> BeautifulSoup:
@@ -39,19 +38,7 @@ def get_commune_name(soup: BeautifulSoup) -> str:
         return None
 
 def get_infos_commune(soup: BeautifulSoup) -> dict:
-    #response = requests.get(url_commune, headers=headers)
-    #response.raise_for_status()
-    #print(f"Page récupérée avec succès : {response.status_code}")
-    #html_content = response.text
-
-    #Parse le contenu HTML avec BeautifulSoup
-    #soup = BeautifulSoup(html_content, 'html.parser')
-
-    # on récupère le titre de la page pour le nom de la commune
-    #title = soup.find('h1', class_='firstHeading')
-    #commune_name = title.text.strip()
-    #print(f"Titre de la page : {commune_name}")
-
+    
     # On définit notre dictionnaire pour stocker les infos
     info_dict = {}
 
@@ -175,10 +162,9 @@ def get_communes_limitrophes(soup: BeautifulSoup) -> dict:
                 return communes_limitrophes
         current_element = current_element.find_next_sibling()
     return {}
-    
 
-if  __name__ == "__main__":
-    
+
+def test():
     # Exemple d'utilisation pour test
 
     start_url =f"{base_url}/wiki/Tours"
@@ -205,3 +191,13 @@ if  __name__ == "__main__":
     dict2_ndoe = get_communes_limitrophes(soup_ndoe)
     for key, value in dict2_ndoe.items():
         print(f"Cellule {key} : {value}")
+
+
+if  __name__ == "__main__":
+    print("Début du script de test...")
+    # Pour vérifier les règles du fichier robots.txt
+    #verif_robots()
+    # On peut scrapper la page car il n'y a pas de restriction dans le fichier robots.txt
+    
+    # Pour lancer le test, décommenter la ligne ci-dessus
+    #test()

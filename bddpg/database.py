@@ -1,4 +1,5 @@
-# database.py
+# bddpg/database.py
+
 from sqlmodel import SQLModel, create_engine, Session
 from typing import Generator
 from config import DATABASE_URL

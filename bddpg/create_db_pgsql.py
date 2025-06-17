@@ -1,4 +1,6 @@
-from app.database import engine, get_session_sync, create_db_and_tables
+# bddpg/create_db_pgsql.py
+
+from .database import engine, get_session_sync, create_db_and_tables
 import logging
 
 

@@ -1,4 +1,5 @@
-# app/services/neo4j_connection.py
+# bddn4j/neo4j_connection.py
+
 from neo4j import GraphDatabase
 import logging
 from typing import Optional, List, Dict, Any

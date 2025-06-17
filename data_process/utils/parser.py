@@ -1,5 +1,7 @@
-# app/utils/parser.py 
+# data/utils/parser.py 
+
 # Fonctions utilitaires pour la convertir les données avec gestion des erreurs
+
 import pandas as pd
 from decimal import Decimal, InvalidOperation
 
