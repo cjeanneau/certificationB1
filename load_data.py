@@ -1,3 +1,5 @@
+# load_data.py
+
 from bddpg import  create_db_pgsql
 from data_process import fill_communes
 from data_process import fill_dvf

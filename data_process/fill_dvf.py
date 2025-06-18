@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-# coding: utf-8
+# data_process/fill_dvf.py
 
 import os
 import pandas as pd
@@ -13,21 +12,6 @@ from bddpg import TransactionDVFCreate, transaction_dvf_crud
 from bddpg import DPECreate, dpe_crud
 from data_process import retrieve_id_ban, retrieve_dpe_by_identifiant_ban
 from data_process import safe_int_conversion
-
-
-#from app.database import engine  
-#from sqlmodel import Session
-#from app.utils.parser import safe_int_conversion
-#from app.models.bien_immobilier import BienImmobilierCreate
-#from app.crud.bien_immobilier import bien_immobilier_crud
-
-#from app.models.transaction_dvf import TransactionDVFCreate
-#from app.crud.transaction_dvf import transaction_dvf_crud 
-#from app.models.dpe import DPECreate
-#from app.crud.dpe import dpe_crud
-#import time
-#from scripts.retrieve_id_ban import retrieve_id_ban
-#from scripts.retrieve_dpe import retrieve_dpe_by_identifiant_ban
 
 def load_dvf_file(file_path: str) -> pd.DataFrame:
     """

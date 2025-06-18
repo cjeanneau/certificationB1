@@ -200,6 +200,16 @@ class CommuneGraphService:
         result = self.neo4j.execute_query(query, {'nom': nom})
         return result[0]['node_id'] if result else None
 
+    def get_commune_id_by_name_and_url(self, nom: str, url: str) -> Optional[int]:
+        """Récupère l'ID d'une commune par son nom"""
+        query = """
+        MATCH (c:Commune {nom: $nom, url: $url})
+        RETURN id(c) as node_id
+        """
+        result = self.neo4j.execute_query(query, {'nom': nom, 'url': url})
+        return result[0]['node_id'] if result else None
+
+
     def get_communes_by_direction(self, code_commune: str, direction: str) -> List[Dict]:
         """Récupère les communes dans une direction spécifique"""
         query = """
@@ -252,6 +262,28 @@ class CommuneGraphService:
         ORDER BY c.nom
         """
         return self.neo4j.execute_query(query, {'region': region})
+    
+    def get_communes_not_scraped_by_departement(self, departement: str) -> List[Dict]:
+        """Récupère les communes pas encore scrappées d'un département spécifique"""
+        query = """
+        MATCH (c:Commune)
+        WHERE (c.scraped = false OR c.scraped IS NULL)
+        AND c.departement = $departement
+        RETURN c.nom as nom, c.code_commune as code_commune, c.url as url
+        ORDER BY c.nom
+        """
+        return self.neo4j.execute_query(query, {'departement': departement})
+
+    def get_communes_not_scraped_by_pays(self, pays: str) -> List[Dict]:
+        """Récupère les communes pas encore scrappées d'un pays spécifique"""
+        query = """
+        MATCH (c:Commune)
+        WHERE (c.scraped = false OR c.scraped IS NULL)
+        AND c.pays = $pays
+        RETURN c.nom as nom, c.code_commune as code_commune, c.url as url
+        ORDER BY c.nom
+        """
+        return self.neo4j.execute_query(query, {'pays': pays})
 
 
     def get_commune_stats(self, code_commune: str) -> Dict:
