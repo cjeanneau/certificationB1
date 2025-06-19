@@ -15,6 +15,8 @@ from .dpe import (
     DPE, DPEBase, DPECreate, DPERead, DPEUpdate, DPEReadWithBien
 )
 
+from .user import User, UserLogin, UserCreate, UserResponse, Token
+
 __all__ = [
     # Commune
     "Commune", "CommuneBase", "CommuneCreate", "CommuneRead", 
@@ -27,4 +29,6 @@ __all__ = [
     "TransactionDVFRead", "TransactionDVFUpdate", "TransactionDVFReadWithBien",
     # DPE
     "DPE", "DPEBase", "DPECreate", "DPERead", "DPEUpdate", "DPEReadWithBien",
+    # User
+    "User", "UserLogin", "UserCreate", "UserResponse", "Token"
 ]
