@@ -27,6 +27,12 @@ class DPECRUD:
         )
         return list(session.exec(statement).all())
     
+    def get_by_numero_dpe(self, session: Session, numero_dpe: str) -> Optional[DPE]:
+        """Récupère un DPE par son numéro DPE"""
+        statement = select(DPE).where(DPE.numero_dpe == numero_dpe)
+        return session.exec(statement).first()
+    
+    
     def get_by_bien(self, session: Session, id_bien: int) -> List[DPE]:
         """Récupère tous les DPE d'un bien"""
         statement = select(DPE).where(

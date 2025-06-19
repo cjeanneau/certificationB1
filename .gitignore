@@ -175,5 +175,7 @@ cython_debug/
 
 data/
 old/
+notebooks/
+docs/
 
 

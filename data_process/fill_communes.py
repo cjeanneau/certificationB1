@@ -1,16 +1,23 @@
-# fill_communes.py
+# data_process/fill_communes.py
+
 ### Script pour remplir la base de données PostgreSQL avec les codes Insee et postaux des communes françaises.
 
 import pandas as pd
 import os
 import time 
 import chardet
-from config import DATA_DIR
-from app.database import engine  
-from sqlmodel import Session
 
-from app.models.commune import CommuneCreate  
-from app.crud.commune import commune_crud  
+from config import DATA_DIR
+
+from sqlmodel import Session
+from bddpg import engine 
+from bddpg import CommuneCreate, commune_crud
+
+#from app.database import engine  
+#from sqlmodel import Session
+
+#from app.models.commune import CommuneCreate  
+#from app.crud.commune import commune_crud  
 
 file_location = os.path.join(DATA_DIR, "codes_communes.csv")
 

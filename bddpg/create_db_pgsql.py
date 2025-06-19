@@ -1,4 +1,6 @@
-from app.database import engine, get_session_sync, create_db_and_tables
+# bddpg/create_db_pgsql.py
+
+from .database import engine, get_session_sync, create_db_and_tables
 import logging
 
 
@@ -6,11 +8,15 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-def create_db_pgsql():
-    """Fonction principale pour créer la base de données et les tables"""
+def create_db_pgsql(drop_tables: bool = False):
+    """Fonction principale pour créer la base de données et les tables
+    Args:
+        drop_tables (bool): Si True, supprime les tables existantes avant de les recréer.
+    """
+    logger.info("Démarrage de la création de la base de données PostgreSQL")
     try:
         # Création des tables
-        create_db_and_tables(drop=True) # Mettre a True pour supprimer les tables existantes
+        create_db_and_tables(drop=drop_tables) # Mettre a True pour supprimer les tables existantes
         
         # Test de la connexion avec une session
         with get_session_sync() as session:  
@@ -25,4 +31,4 @@ def create_db_pgsql():
         logger.info("Base de données créée avec succès")
 
 if __name__ == "__main__":
-    create_db_pgsql()
+    create_db_pgsql(drop_tables=True)  # Mettre à True pour supprimer les tables existantes
