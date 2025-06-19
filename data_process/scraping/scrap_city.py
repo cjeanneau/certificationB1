@@ -2,13 +2,14 @@
 
 import requests
 from bs4 import BeautifulSoup
-
+import time
 
 base_url = "https://fr.wikipedia.org"
 
 headers = {
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
     }
+DELAY_FOR_REQUESTS = 0.5
 
 def verif_robots():
     """Vérifie les règles du fichier robots.txt pour le site"""
@@ -20,6 +21,8 @@ def verif_robots():
 
 def get_soup(url: str) -> BeautifulSoup:
     """Récupère le contenu HTML d'une page et le parse avec BeautifulSoup"""
+    time.sleep(DELAY_FOR_REQUESTS)  # Pause pour éviter de surcharger le serveur
+    # On peut remplacer request par le module requests_ratelimiter
     response = requests.get(url, headers=headers)
     response.raise_for_status()
     print(f"Page récupérée avec succès : {response.status_code}")
