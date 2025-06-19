@@ -1,11 +1,13 @@
 import sys
 import logging
+from bs4 import BeautifulSoup
 from bddn4j import commune_graph_service
 from data_process  import (
     get_soup,
     get_communes_limitrophes,
     get_infos_commune,
-    get_commune_name)
+    get_commune_name    
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,72 +21,96 @@ logger = logging.getLogger(__name__)
 
 
 def fill_graphe():
-    
-    """Initialise la base avec la commune de départ (Tours)"""
-    logger.info("Initialisation de la base de données Neo4j...")
+    # Efface la la base de données Neo4j avant de commencer
     commune_graph_service.clear_database()
-    logger.info("Base de données Neo4j initialisée")
-    
-    # Créer Tours comme commune de départ
-    nom_tours = "Tours"
-    url_tours = "https://fr.wikipedia.org/wiki/Tours"
-    id_node_tours = commune_graph_service.create_temporary_commune_and_return_id(
-        nom=nom_tours,
-        url=url_tours,
-    )
-    logger.info(f"🏛️ Commune de départ '{nom_tours}' créée avec l'id : {id_node_tours}")
 
-    for iteration in range(0, 20):  # Nombre d'itérations à ajuster selon les besoins
+    # Initialise la base avec la commune de départ (Tours)
+    nom_tours = "TOURS"
+    url_tours = "https://fr.wikipedia.org/wiki/Tours"
+    init_a_node(nom_tours, url_tours)
+        
+    # Je pourrais remplacer la boucle suivante par une comparaison 
+    # entre le nombre de noeud total précédent et courant pour sortir de la  boucle.
+
+    for iteration in range(0, 15):  # Nombre d'itérations à ajuster selon les besoins
         print("======================================================")
         print("==================== Itération {} ====================".format(iteration + 1))
         print("======================================================")
         process_communes_not_scrapped()
+        
+        print("==================== Fin  Itération {} ====================".format(iteration + 1))
+        print(f"********************** Nombre de communes : {commune_graph_service.get_nombre_total_noeuds()} **********************")
+        #input()
 
+def init_a_node(nom,url):
+    try:
+        logger.info(f"Initialisation du noeud pour la commune : {nom} - URL : {url}")
+        id_node = commune_graph_service.create_temporary_commune_and_return_id(
+            nom=nom,
+            url=url,
+        )
+        logger.info(f"Noeud {id_node} initialisé avec '{nom}' - '{url}'")
+    except Exception as e:
+        logger.error(f"Erreur lors de l'initialisation du noeud pour {nom}: {str(e)}")
+        return None
+    
 def process_communes_not_scrapped():
     # on récupère la liste des communes à srcapper
     communes_to_be_scrapped = commune_graph_service.get_communes_not_scraped()
     
     for commune in communes_to_be_scrapped:
+        soup= get_soup(commune['url'])
+        if not soup:
+            logger.error(f"Erreur lors de la récupération de la page pour {commune['nom']} - URL : {commune['url']}")
+            continue
         logger.info(f"Commune à scrapper : {commune['nom']} - URL : {commune['url']}")
-        
-        # Ici on pourrait rajouter e test de region ou departement ou pays 
-        if is_region("Centre-Val de Loire", commune['url']):
-            process_single_commune(commune)
+        # Ici on rajoute un test pour limiter au departement 
+      
+        if isin_departement("Indre-et-Loire", soup):
+            logger.info(f"La commune {commune['nom']} est en Indre-et-Loire => On la scrappe")
+            process_single_commune(commune, soup)
+        else :
+            # Si la commune n'est pas dans le département, on efface son noeud
+            id_to_delete = commune_graph_service.get_commune_id_by_name_and_url(commune['nom'], commune['url'])
+            commune_graph_service.delete_commune_by_id(id_to_delete)
+            logger.info(f"La commune {commune['nom']} n'est pas en Indre-et-Loire => On supprime son noeud {id_to_delete}")
 
 
-def is_region(region: str, commune_url: str) -> bool:
+def isin_departement(dpt: str, soup: BeautifulSoup) -> bool:
     """Vérifie si la commune appartient à la région spécifiée"""
     # Ici on pourrait implémenter une logique plus complexe pour vérifier la région
     # Par exemple, en utilisant une liste de communes connues de cette région
     # Pour l'instant, on va juste vérifier si le nom de la commune contient le nom de la région
-    soup= get_soup(commune_url)
-    if not soup:
-        logger.error(f"Erreur lors de la récupération de la page pour {commune_url}")
-        return False
+    print("Entree dans la fionction isin_departement")
     commune_info = get_infos_commune(soup)
     if not commune_info:
-        logger.error(f"Erreur lors de la récupération des infos pour {commune_url}")
+        logger.error(f"Erreur lors de la récupération des infos pour {get_commune_name(soup)}")
         return False
-    if commune_info.get('Région') == region:
-        return True
-    else:
-        return False    
-
-def process_single_commune(commune: dict) -> bool:
-    """Traite une seule commune - retourne True si traitement réussi"""
-    logger.info(f"{commune['nom']} - ({commune['url']})")
     
-    if not commune['url']:
+    extracted_dpt = commune_info.get('Département', None)
+    if extracted_dpt is None:
+        logger.error(f"Aucun département trouvé pour {get_commune_name(soup)}")
         return False
+    
+    if dpt in extracted_dpt:
+        return True
+    
+    return False    
+
+def process_single_commune(commune: dict, soup: BeautifulSoup) -> bool:
+    """Traite une seule commune - retourne True si traitement réussi"""
+    #logger.info(f"{commune['nom']} - ({commune['url']})")
+    
+    #if not commune['url']:
+    #    return False
         
     try:
-        soup = get_soup(commune['url'])                
+        #soup = get_soup(commune['url'])                
         infos_commune = get_infos_commune(soup)
         
-    
         # Mettre à jour la commune avec les infos scrappées
         id_origin = commune_graph_service.create_commune_and_return_id(
-            nom=commune['nom'],
+            nom=commune['nom'].upper(),
             pays=infos_commune.get('Pays', None),
             region=infos_commune.get('Région', None),
             departement=infos_commune.get('Département', None),
@@ -94,13 +120,12 @@ def process_single_commune(commune: dict) -> bool:
             scraped=False  # Pas encore terminé
         )
 
-       
         if id_origin is None:
             logger.error(f"Impossible de créer/mettre à jour la commune {commune['nom']}")
             # DEBUG: Essayer avec des valeurs par défaut
             logger.info(f"DEBUG: Tentative avec valeurs par défaut...")
             id_origin = commune_graph_service.create_commune_and_return_id(
-                nom=commune['nom'],
+                nom=commune['nom'].upper(),
                 pays="FR",
                 region="Centre-Val de Loire",
                 departement="Indre-et-Loire",
@@ -135,7 +160,7 @@ def process_commune_limitrophes(id_origin: int, communes_limitrophes: dict):
     for direction, commune_to_register in communes_limitrophes.items():
         print(f"Orientation : {direction} : ")
         for commune_limits in commune_to_register:
-            nom_comm_limit = commune_limits['nom']
+            nom_comm_limit = commune_limits['nom'].upper()
             url_comm_limit = commune_limits['url']
             logger.info(f"Traitement de la commune limitrophe : {nom_comm_limit} - URL : {url_comm_limit}")
             
