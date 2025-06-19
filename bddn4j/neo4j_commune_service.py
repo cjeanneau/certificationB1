@@ -295,6 +295,15 @@ class CommuneGraphService:
         """
         return self.neo4j.execute_query(query, {'code_commune': code_commune})
 
+    def get_nombre_total_noeuds(self) -> int:
+        """Récupère le nombre total de nœuds dans la base de données"""
+        query = """
+        MATCH (n)
+        RETURN count(n) as total_nodes
+        """
+        result = self.neo4j.execute_query(query)
+        return result[0]['total_nodes'] if result else 0
+    
     def clear_database(self):
         """Supprime toutes les communes et relations"""
         query = """
@@ -303,7 +312,31 @@ class CommuneGraphService:
         """
         return self.neo4j.execute_write(query)
     
-
+    def delete_commune_by_id(self, node_id: int) -> bool:
+        """
+        Supprime une commune par son ID Neo4j
+        
+        Args:
+            node_id: L'ID du nœud à supprimer
+            
+        Returns:
+            bool: True si suppression réussie, False sinon
+        """
+        query = """
+        MATCH (c:Commune) WHERE id(c) = $node_id
+        DETACH DELETE c
+        RETURN count(c) as deleted_count
+        """
+        
+        result = self.neo4j.execute_write(query, {'node_id': node_id})
+        
+        if result and result.get('deleted_count', 0) > 0:
+            print(f"Commune avec ID {node_id} supprimée avec succès")
+            return True
+        else:
+            print(f"Aucune commune trouvée avec l'ID {node_id}")
+            return False
+        
 # Instance globale
 commune_graph_service = CommuneGraphService()
 
