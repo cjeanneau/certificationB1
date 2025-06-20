@@ -6,6 +6,7 @@ from bddpg import get_session_sync, commune_crud, create_db_and_tables
 from bddn4j import commune_graph_service, neo4j_service
 
 from api.auth_routes import router as auth_router
+from api.dpe_routes import router as dpe_router
 
 
 # Crée ou met à jour les  les tables PostgreSQL avec SQLModel
@@ -21,6 +22,7 @@ app = FastAPI(
 
 # routage des points d'authentification
 app.include_router(auth_router)      # Routes d'authentification
+app.include_router(dpe_router)      # Routes pour les DPE
 
 @app.get("/")
 def welcome():
