@@ -4,7 +4,7 @@ import os
 import pandas as pd
 import time
 from config import DATA_DIR
-
+from typing import Optional
 from sqlmodel import Session
 from bddpg import engine
 from bddpg import BienImmobilierCreate, bien_immobilier_crud
@@ -12,6 +12,21 @@ from bddpg import TransactionDVFCreate, transaction_dvf_crud
 from bddpg import DPECreate, dpe_crud
 from data_process import retrieve_id_ban, retrieve_dpe_by_identifiant_ban
 from data_process import safe_int_conversion
+import logging
+import sys
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Affichage dans le terminal
+        logging.FileHandler('fill_dvf.log', mode='a')  # fichier de log en mode append
+    ],
+    force=True  # Force la configuration du logging pour écraser les précédentes configurations
+)
+logger = logging.getLogger(__name__)
+
+
 
 def load_dvf_file(file_path: str) -> pd.DataFrame:
     """
@@ -28,7 +43,7 @@ def load_dvf_file(file_path: str) -> pd.DataFrame:
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Le fichier {file_path} n'existe pas.")
     # Chargement du fichier DVF
-    print(f"Chargement du fichier DVF depuis {file_path}...")
+    logger.info(f"Chargement du fichier DVF depuis {file_path}...")
 
     col_to_keep = [
         'Date mutation',
@@ -166,11 +181,16 @@ def save_dvf__df_to_csv(df: pd.DataFrame, output_path: str) -> None:
     """
 
     # On sauvegarde le DataFrame dans un fichier CSV
-    df.to_csv(output_path, index=False, sep=';')
-    print(f"Le fichier a été sauvegardé sous {output_path}")
+    try:
+
+        df.to_csv(output_path, index=False, sep=';')
+        logger.info(f"Le fichier a été sauvegardé sous {output_path}")
+    except Exception as e:
+        logger.error(f"Erreur lors de la sauvegarde du fichier CSV : {e}")
+    
 
 
-def load_dvf_to_PG(df: pd.DataFrame, index = 0):
+def load_dvf_to_PG(df: pd.DataFrame, idx: Optional[int] = None):
     """
     Enregistre le DataFrame DVF dans la base de données PostgreSQL.
     
@@ -181,7 +201,18 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
     Returns:
         None
     """
+    # Si idx est spécifié, commencer à partir de cet index
+    if idx is not None:
+        start_index = idx
+        logger.info(f"Reprise du traitement à partir de l'index {idx}")
+    else:
+        start_index = 0
+        
     for index, row in df.iterrows():
+        # On ignore les lignes dont l'index est inférieur à start_index
+        if index < start_index:
+            continue
+        logger.info(f"Traitement de la ligne d'index : {index}...")
         try:
             # Construction de l'adresse normalisée
             adresse_parts = []
@@ -200,7 +231,7 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                 code_insee_complet = (code_dept * 1000) + code_commune
                 code_insee_commune = str(code_insee_complet).zfill(5)  # Formatage sur 5 chiffres
             else:
-                print(f"Le code insee commune n'est pas identifiable, l'enregistrement est ignorée")
+                logger.info(f"Le code insee commune n'est pas identifiable, l'enregistrement est ignorée")
                 continue    #On passe à la ligne suivante
 
             # Construction de la référence cadastrale
@@ -233,12 +264,12 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                          # Vérifier si le bien existe déjà avec tous les champs
                         existing_bien = bien_immobilier_crud.get_by_all_fields(session, bien)
                         if existing_bien:
-                            print(f"Bien existant trouvé avec ID: {existing_bien.id_bien}")
+                            logger.info(f"Bien existant trouvé avec ID: {existing_bien.id_bien}")
                             created_bien = existing_bien
                         else:
                             created_bien = bien_immobilier_crud.create(session, bien)
-                            print(f"Nouveau bien créé avec ID: {created_bien.id_bien}")
-                        print(f"Ligne d'index {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
+                            logger.info(f"Nouveau bien créé avec ID: {created_bien.id_bien}")
+                        logger.info(f"Ligne d'index {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
                         # Maintenant que le bien est créé, on peut enregistrer la transaction
                         transaction = TransactionDVFCreate(
                             id_bien=created_bien.id_bien,
@@ -249,20 +280,20 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                         # Vérifier si la transaction existe déjà
                         existing_transaction = transaction_dvf_crud.get_by_all_fields(session, transaction)
                         if existing_transaction:
-                            print(f"Transaction existante trouvée avec ID: {existing_transaction.id_transaction}")
+                            logger.info(f"Transaction existante trouvée avec ID: {existing_transaction.id_transaction}")
                             created_transaction = existing_transaction
                         else:
                             created_transaction = transaction_dvf_crud.create(session, transaction)
-                            print(f"Nouvelle transaction créée avec ID: {created_transaction.id_transaction}")
+                            logger.info(f"Nouvelle transaction créée avec ID: {created_transaction.id_transaction}")
 
-                        print(f"Transaction DVF {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
+                        logger.info(f"Transaction DVF {index} enregistrée avec succès pour le bien ID: {created_bien.id_bien}")
                 except Exception as e:
-                    print(f"Erreur lors de la création du bien: {e}")
+                    logger.error(f"Erreur lors de la création du bien: {e}")
                     session.rollback()  # Annule la transaction en cas d'erreur
                     continue
             
             # Ajout des donnees DPE si elles existent
-            print(f"identifiant ban : {id}")
+            logger.info(f"Recherche des dpes ayant l'identifiant ban : {id}")
             if id:
                 dpes =retrieve_dpe_by_identifiant_ban(id)
                 if dpes:
@@ -285,24 +316,23 @@ def load_dvf_to_PG(df: pd.DataFrame, index = 0):
                                 # Vérifier si le DPE existe déjà
                                 existing_dpe = dpe_crud.get_by_numero_dpe(session, dpe_data.numero_dpe)
                                 if existing_dpe:
-                                    print(f"DPE existant trouvé pour l'identifiant BAN: {dpe_data.identifiant_ban}")    
+                                    logger.info(f"DPE existant trouvé pour l'identifiant BAN: {dpe_data.identifiant_ban}")    
                                 else:
                                     # Si le DPE n'existe pas, on l'enregistre
-                                    print(f"Enregistrement du DPE pour l'identifiant BAN: {dpe_data.identifiant_ban}")
-                                    # On crée le DPE
+                                    logger.info(f"Enregistrement du DPE pour l'identifiant BAN: {dpe_data.identifiant_ban}")
                                     created_dpe = dpe_crud.create(session, dpe_data)
-                                    print(f"DPE ajouté pour le bien ID: {created_bien.id_bien}")
+                                    logger.info(f"DPE ajouté pour le bien ID: {created_bien.id_bien}")
                         except Exception as e:
-                            print(f"Erreur lors de l'enregistrement du DPE: {e}")
+                            logger.error(f"Erreur lors de l'enregistrement du DPE: {e}")
                             session.rollback()
                             continue                
         except Exception as e:
-            print(f"Erreur ligne idex : {index}: {e}")
+            logger.error(f"Erreur ligne idex : {index}: {e}")
     
-    print(f"Toutes les transactions DVF ont été traitées et enregistrées avec succès jusqu'à l'index : {index} !")
+    logger.info(f"Toutes les transactions DVF ont été traitées et enregistrées avec succès jusqu'à l'index : {index} !")
 
 
-def fill_dvf():
+def fill_dvf(idx: Optional[int] = None):
     """
     Fonction principale pour charger, nettoyer et enregistrer les données DVF dans la base de données PostgreSQL.
     
@@ -313,20 +343,20 @@ def fill_dvf():
     start_time = time.time()
     intermediate_time = start_time
     for file in os.listdir(DATA_DIR):
-        if file.startswith("ValeursFoncieres-") & file.endswith(".txt"):
+        if file.startswith("ValeursFoncieres") & file.endswith(".txt"):
             
             file_path = os.path.join(DATA_DIR, file)
             df = load_dvf_file(file_path)
-            print(f"{file} : Chargement du fichier DVF terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes : {len(df)}")
+            logger.info(f"{file} : Chargement du fichier DVF terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes : {len(df)}")
             df_cleaned = clean_dvf_data(df)
-            print(f"{file} : Nettoyage du DataFrame terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes après nettoyage : {len(df_cleaned)}")
-            load_dvf_to_PG(df_cleaned, index=0)
+            logger.info(f"{file} : Nettoyage du DataFrame terminé en {(time.time() - intermediate_time):.2f} secondes. Nombre de lignes après nettoyage : {len(df_cleaned)}")
+            load_dvf_to_PG(df_cleaned, idx=idx)
             intermediate_time = time.time()
-            print(f"{file} : Chargement en Base de Données terminé en {(intermediate_time - start_time):.2f} secondes.")
-    print("\nTous les fichiers DVF ont été traités et sauvegardés avec succès !")
-    print("Fin du script.")
+            logger.info(f"{file} : Chargement en Base de Données terminé en {(intermediate_time - start_time):.2f} secondes.")
+    logger.info("\nTous les fichiers DVF ont été traités et sauvegardés avec succès !")
+    logger.info("Fin du script.")
     end_time = time.time()
-    print(f"\nTemps total: {(end_time - start_time):.2f} secondes")
+    logger.info(f"\nTemps total: {(end_time - start_time):.2f} secondes")
 
 
 if __name__ == "__main__":

@@ -57,9 +57,9 @@ def test():
     """
 
 
-    from scripts.fill_dvf import load_dvf_file, clean_dvf_data
+    from data_process.fill_dvf import load_dvf_file, clean_dvf_data
     import os
-    from app.utils.parser import safe_int_conversion
+    from data_process.utils.parser import safe_int_conversion
     from config import DATA_DIR
     import pandas as pd
 
@@ -111,8 +111,8 @@ def test():
     return
     
 if __name__ == "__main__":
-    print("Test de la fonction retrieve_id_ban et un peu plus...")
-    #test()
     
+    test()
+
 
 
