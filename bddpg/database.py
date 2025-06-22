@@ -4,12 +4,22 @@ from sqlmodel import SQLModel, create_engine, Session
 from typing import Generator
 from config import DATABASE_URL
 import logging
+import sys
 
 from .models import *
 print(DATABASE_URL)
 
 # Configuration du logging
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Affichage dans le terminal
+        logging.FileHandler('bddpg.log', mode='a')  # Fichier de log en mode append
+    ],
+    force = True  # Force la configuration du logging pour écraser les précédentes configurations
+)
 logger = logging.getLogger(__name__)
 
 # Création de l'engine SQLModel

@@ -2,7 +2,7 @@ from datetime import date, timedelta
 import requests
 from schemas import success_response, error_response
 
-class DPEService:
+class DPEServices:
     """
     Classe pour interagir avec l'API DPE (Diagnostic de Performance Énergétique).
     """

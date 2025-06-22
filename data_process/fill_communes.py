@@ -12,13 +12,21 @@ from config import DATA_DIR
 from sqlmodel import Session
 from bddpg import engine 
 from bddpg import CommuneCreate, commune_crud
+import logging
+import sys
 
-#from app.database import engine  
-#from sqlmodel import Session
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Affichage dans le terminal
+        logging.FileHandler('fill_communes.log', mode='a')  # fichier de log en mode append
+    ],
+    force=True  # Force la configuration du logging pour écraser les précédentes configurations
+)
+logger = logging.getLogger(__name__)
 
-#from app.models.commune import CommuneCreate  
-#from app.crud.commune import commune_crud  
-
+# Chemin vers le fichier CSV des codes communes
 file_location = os.path.join(DATA_DIR, "codes_communes.csv")
 
 def load_communes_file(file_path : str) -> pd.DataFrame:
@@ -46,7 +54,7 @@ def load_communes_file(file_path : str) -> pd.DataFrame:
     df_communes.columns = [col.strip().lower() for col in df_communes.columns]
     
     # Affichage du temps de traitement
-    print(f"Temps de traitement pour {file_path}: {time.time() - start_time:.2f} secondes")
+    logger.info(f"Temps de traitement pour {file_path}: {time.time() - start_time:.2f} secondes")
     
     return df_communes
 
@@ -85,11 +93,11 @@ def load_communes_to_PG(df_communes: pd.DataFrame):
                 )
                 if not commune_crud.get_by_code_insee(session, commune.code_insee_commune):
                     created_commune = commune_crud.create(session, commune)
-                    print("Commune créée:", created_commune)
+                    logger.info(f"Commune créée: {created_commune}")
                 else:
-                    print("La commune existe déjà, pas de création.")
+                    logger.info(f"La commune {row['nom_de_la_commune']} existe déjà, pas de création.")
         except Exception as e:
-            print(f"Erreur lors de l'enregistrement des communes: {str(e)}")
+            logger.error(f"Erreur lors de l'enregistrement des communes: {str(e)}")
             raise
 
 
@@ -104,10 +112,10 @@ def fill_communes():
         None
     """
     file_location = os.path.join(DATA_DIR, "codes_communes.csv")
-    print("Enregistrement des communes dans la base de données PostgreSQL...")
+    logger.info("Début de l'enregistrement des communes dans la base de données PostgreSQL...")
     df_communes = load_communes_file(file_location)
     load_communes_to_PG(df_communes)
-    print("Enregistrement terminé.")
+    logger.info("Enregistrement terminé.")
 
 if __name__ == "__main__":
     

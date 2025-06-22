@@ -7,6 +7,7 @@ from bddn4j import commune_graph_service, neo4j_service
 
 from api.auth_routes import router as auth_router
 from api.dpe_routes import router as dpe_router
+from api.eval_routes import router as eval_router
 
 
 # Crée ou met à jour les  les tables PostgreSQL avec SQLModel
@@ -23,6 +24,7 @@ app = FastAPI(
 # routage des points d'authentification
 app.include_router(auth_router)      # Routes d'authentification
 app.include_router(dpe_router)      # Routes pour les DPE
+app.include_router(eval_router)     # Routes pour l'évaluation immobilière
 
 @app.get("/")
 def welcome():

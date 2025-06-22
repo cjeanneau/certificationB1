@@ -1,2 +1,4 @@
-from .dpe_services import DPEService
+from .dpe_services import DPEServices
+from .eval_services import EvalServices
+
 

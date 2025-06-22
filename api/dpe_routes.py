@@ -3,15 +3,14 @@ from sqlmodel import Session
 from bddpg import User, UserLogin, UserCreate, get_session_sync
 from schemas import success_response
 from auth import get_current_active_user, require_admin, require_user_or_admin
-from services import DPEService
+from services import DPEServices
 
 
 router = APIRouter(prefix="/api/v1/dpe", tags=["Diagnostic DPE"])
 
 @router.get("/recent")
 def get_recent_dpes(cp: str, nb_jour: int = 30):
-    current_user: User = Depends(require_user_or_admin)  # Seuls les admins peuvent voir tous les utilisateurs
-
+    
     """Récupérer tous les dpe depuis une date """
     try:
         dpes = DPEService.retrieve_recent_dpe_by_cp(cp, nb_jour)

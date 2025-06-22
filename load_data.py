@@ -15,15 +15,15 @@ def main():
         None
     """
     print("Création de la base de données PostgreSQL et des tables...")
-    #create_db_pgsql()
+    create_db_pgsql(delete_table)
     print("Base de données et tables créées.")
 
     print("Remplissage des communes...")
-    #fill_communes()
+    fill_communes()
     print("Remplissage des communes terminé.")
 
     print("Remplissage des transactions DVF...")
-    #fill_dvf()
+    fill_dvf()
     print("Remplissage des transactions DVF terminé.")
     
     print("Remplissage du graphe des communes limitrophes...")

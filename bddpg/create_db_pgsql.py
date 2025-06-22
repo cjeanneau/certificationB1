@@ -2,10 +2,19 @@
 
 from .database import engine, get_session_sync, create_db_and_tables
 import logging
-
+import sys
 
 # Configuration du logging
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout),  # Affichage dans le terminal
+        logging.FileHandler('bddpg.log', mode='a')  # Fichier de log en mode append
+    ],
+    force = True  # Force la configuration du logging pour écraser les précédentes configurations
+)
 logger = logging.getLogger(__name__)
 
 def create_db_pgsql(drop_tables: bool = False):
