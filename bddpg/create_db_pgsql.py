@@ -11,7 +11,7 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
         logging.StreamHandler(sys.stdout),  # Affichage dans le terminal
-        logging.FileHandler('bddpg.log', mode='a')  # Fichier de log en mode append
+        logging.FileHandler('all_logs.log', mode='a')  # Fichier de log en mode append
     ],
     force = True  # Force la configuration du logging pour écraser les précédentes configurations
 )

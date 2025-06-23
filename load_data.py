@@ -15,7 +15,7 @@ def main():
         None
     """
     print("Création de la base de données PostgreSQL et des tables...")
-    create_db_pgsql(delete_table)
+    create_db_pgsql()
     print("Base de données et tables créées.")
 
     print("Remplissage des communes...")
