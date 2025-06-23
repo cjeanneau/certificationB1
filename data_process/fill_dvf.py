@@ -96,7 +96,7 @@ def load_dvf_file(file_path: str) -> pd.DataFrame:
         decimal=',',  # Le séparateur décimal est une virgule
         usecols=col_to_keep,  # On ne garde que les colonnes nécessaires
         dtype=col_type,  # On spécifie les types de colonnes
-        parse_dates=['Date mutation'],  # On parse la colonne des dates
+        parse_dates=['Date mutation'],  # On parse la colonne des dates au  format datetime
         na_values=['NULL', '', '-']  # Valeurs à considérer comme
     )
     return df

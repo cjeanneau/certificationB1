@@ -55,78 +55,7 @@ class CommuneGraphService:
         return result['node_id'] if result else None
     
 
-    '''def create_commune_and_return_id(self, nom: str, pays: str, departement: str, code_postaux: str, code_commune: str, region: str = None, url: str = None, scraped: bool = False) -> Optional[int]:
-        """Crée une commune et retourne son ID Neo4j ou None  si l'opération échoue"""
-
-        if code_commune:
-            print("# Le code commune existe donc on peut merger sur ce code")
-            query = """
-            MERGE (c:Commune {code_commune: $code_commune})
-            SET c.nom = $nom,
-                c.pays = $pays,
-                c.region = $region,
-                c.departement = $departement,
-                c.code_postaux = $code_postaux,
-                c.url = $url,
-                c.scraped = $scraped,
-                c.updated_at = datetime()
-            RETURN id(c) as node_id, c
-            """
-        else:
-            # Le code commune n'existe pas c'est le caas de la création d'une noeud temporaire
-            print("# on merge alors sur nom et url")
-            query = """
-            MERGE (c:Commune {nom: $nom, url: $url})
-            SET c.pays = $pays,
-                c.region = $region,
-                c.departement = $departement,
-                c.code_postaux = $code_postaux,
-                c.scraped = $scraped,
-                c.updated_at = datetime()
-            RETURN id(c) as node_id
-            """
-
-        result = self.neo4j.execute_write(query, {
-            'nom': nom,
-            'pays': pays,
-            'region': region,  
-            'departement': departement,
-            'code_postaux': code_postaux,
-            'code_commune': code_commune,
-            'url': url,
-            'scraped': scraped
-        })
-        return result['node_id'] if result else None
-    '''
-    '''
-    def create_commune(self, nom: str, pays: str, departement: str, code_postaux: str, code_commune: str, region: str = None, url: str = None, scraped: bool = False):
-        """Crée ou met à jour une commune dans le graphe"""
-        query = """
-        MERGE (c:Commune {code_commune: $code_commune})
-        SET c.nom = $nom,
-            c.pays = $pays,
-            c.region = $region,
-            c.departement = $departement,
-            c.code_postaux = $code_postaux,
-            c.url = $url,
-            c.scraped = $scraped,
-            c.updated_at = datetime()
-        RETURN c
-        """
-        return self.neo4j.execute_write(query, {
-            'nom': nom,
-            'pays': pays,
-            'region': region,  
-            'departement': departement,
-            'code_postaux': code_postaux,
-            'code_commune': code_commune,
-            'url': url,
-            'scraped': scraped
-        })
-'''
     
-
-
         
     # Méthodes avec graphe orienté
     def add_relation_limitrophe(self, code_commune_origin: str, code_commune_target: str, direction: str):
