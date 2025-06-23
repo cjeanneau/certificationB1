@@ -83,6 +83,29 @@ def load_communes_to_PG(df_communes: pd.DataFrame):
     Returns:
         None
     """
+
+    with Session(engine) as session:
+        try:
+            for _, row in df_communes.iterrows():
+                commune = CommuneCreate(
+                    code_insee_commune=row['#code_commune_insee'],
+                    nom_commune=row['nom_de_la_commune'],
+                    code_postal=row['code_postal']
+                )
+                
+                # On crée la commune si elle n'existe pas déjà
+                # Le test de l'existence se fait dans la méthode get_or_create_commune
+                commune = commune_crud.get_or_create_commune(
+                    session, commune
+                )
+                
+                logger.info(f"Commune: {commune.nom_commune} ({commune.code_postal}) → ID: {commune.id_commune}")
+                
+        except Exception as e:
+            logger.error(f"Erreur: {str(e)}")
+            raise
+
+    '''    
     with Session(engine) as session:
         try:
             for _, row in df_communes.iterrows():
@@ -99,6 +122,7 @@ def load_communes_to_PG(df_communes: pd.DataFrame):
         except Exception as e:
             logger.error(f"Erreur lors de l'enregistrement des communes: {str(e)}")
             raise
+    '''
 
 
 def fill_communes():
