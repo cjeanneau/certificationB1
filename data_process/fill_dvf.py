@@ -9,6 +9,7 @@ from sqlmodel import Session
 from bddpg import engine
 from bddpg import BienImmobilierCreate, bien_immobilier_crud
 from bddpg import TransactionDVFCreate, transaction_dvf_crud
+from bddpg import commune_crud
 from bddpg import DPECreate, dpe_crud
 from data_process import retrieve_id_ban, retrieve_dpe_by_identifiant_ban
 from data_process import safe_int_conversion
@@ -234,23 +235,25 @@ def load_dvf_to_PG(df: pd.DataFrame, idx: Optional[int] = None):
             else:
                 logger.info(f"Le code insee commune n'est pas identifiable, l'enregistrement est ignorée")
                 continue    #On passe à la ligne suivante
-
+            
             # Construction de la référence cadastrale
             reference_cadastrale_parcelle = row['Prefixe de section'] + row['Section'] + str(row['No plan'])
             id, score = retrieve_id_ban(adresse_normalisee, code_insee_commune)
            
+            
+
             bien = BienImmobilierCreate(
-                code_insee_commune=code_insee_commune,
+                #code_insee_commune=code_insee_commune,
                 adresse_normalisee=adresse_normalisee,
-                code_postal=row['Code postal'] if pd.notna(row['Code postal']) else None,
+                #code_postal=row['Code postal'] if pd.notna(row['Code postal']) else None,
                 reference_cadastrale_parcelle=reference_cadastrale_parcelle,
                 type_bien=row['Type local'] if pd.notna(row['Type local']) else None,
                 surface_reelle_bati=row['Surface reelle bati'] if pd.notna(row['Surface reelle bati']) else None,
                 nombre_pieces_principales=row['Nombre pieces principales'] if pd.notna(row['Nombre pieces principales']) else None,
                 surface_terrain_totale=row['Surface terrain'] if pd.notna(row['Surface terrain']) else None,
                 source_info_principale="DVF",
-                id_ban = id if id else None,
-                score_ban = score if score else None
+                #id_ban = id if id else None,
+                #score_ban = score if score else None
             )
 
             transaction = TransactionDVFCreate(
@@ -262,6 +265,25 @@ def load_dvf_to_PG(df: pd.DataFrame, idx: Optional[int] = None):
             
             with Session(engine) as session:
                 try:    
+                        # Récupération de l'identifiant_commune
+                        commune = commune_crud.get_by_code_insee_and_cp(
+                            session, 
+                            code_insee_commune, 
+                            row['Code postal']
+                        )
+                        # Si aucune commune n'est trouvée, on ignore l'enregistrement
+                        if not commune:
+                            logger.info(f"Aucune commune trouvée pour le code INSEE {code_insee_commune} et le code postal {row['Code postal']}. L'enregistrement est ignoré.")
+                            continue
+                        # Remarque : on suppose qu'il n'y a qu'une seule commune pour un code INSEE et un code postal
+                        id_commune = commune.id_commune if commune else None
+                        if id_commune is not None:
+                            # on met a jour l'id_commune du bien immobilier que l'on souhaite créer
+                            bien.id_commune = id_commune
+                        else:
+                            logger.info(f"Aucune commune trouvée pour le code INSEE {code_insee_commune} et le code postal {row['Code postal']}. L'enregistrement est ignoré.")
+                            continue
+
                          # Vérifier si le bien existe déjà avec tous les champs
                         existing_bien = bien_immobilier_crud.get_by_all_fields(session, bien)
                         if existing_bien:

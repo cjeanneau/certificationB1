@@ -15,7 +15,7 @@ def main():
         None
     """
     print("Création de la base de données PostgreSQL et des tables...")
-    create_db_pgsql()
+    create_db_pgsql(delete_table)
     print("Base de données et tables créées.")
 
     print("Remplissage des communes...")
@@ -27,7 +27,7 @@ def main():
     print("Remplissage des transactions DVF terminé.")
     
     print("Remplissage du graphe des communes limitrophes...")
-    fill_graphe()
+    #fill_graphe()
     print("Remplissage du graphe des communes limitrophes terminé.")
 
     print("Processus terminé.")

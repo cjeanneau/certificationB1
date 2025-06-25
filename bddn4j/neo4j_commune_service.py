@@ -112,11 +112,11 @@ class CommuneGraphService:
         """Récupère toutes les communes limitrophes (**ORIENTE**)"""
         query = """
         MATCH (c:Commune {code_commune: $code_commune})-[r:LIMITROPHE]->(limitrophe:Commune)
-        RETURN limitrophe.name as name, 
+        RETURN limitrophe.nom as nom, 
                limitrophe.code_commune as code_commune,
                limitrophe.region as region,
                r.direction as direction
-        ORDER BY r.direction, limitrophe.name
+        ORDER BY r.direction, limitrophe.nom
         """
         return self.neo4j.execute_query(query, {'code_commune': code_commune})
     
