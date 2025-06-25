@@ -120,6 +120,16 @@ class CommuneGraphService:
         """
         return self.neo4j.execute_query(query, {'code_commune': code_commune})
     
+    def get_commune_name_by_code_insee(self, code_commune: str) -> Optional[str]:
+        """Récupère le nom d'une commune par son code insee"""
+        query = """
+        MATCH (c:Commune {code_commune: $code_commune})
+        RETURN c.nom as nom
+        """
+        result = self.neo4j.execute_query(query, {'code_commune': code_commune})
+        return result[0]['nom'] if result else None
+    
+
     def get_commune_id_by_name(self, nom: str) -> Optional[int]:
         """Récupère l'ID d'une commune par son nom"""
         query = """
