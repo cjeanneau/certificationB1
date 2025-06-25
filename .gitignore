@@ -179,3 +179,4 @@ notebooks/
 docs/
 
 
+bddpg/*.sql.gz
