@@ -1,7 +1,70 @@
+# bddpg/crud/commune.py
+
+from sqlmodel import Session, select
+from typing import Optional
+from ..models.commune import Commune, CommuneCreate
+
+class CommuneCRUD:
+    
+    @staticmethod
+    def get_or_create_commune(
+        session: Session, 
+        commune_to_create: CommuneCreate
+    ) -> Commune:
+        """Récupère ou crée une commune"""
+        
+        # Chercher sur tous les cvhamps si existe déjà
+        existing = session.exec(
+            select(Commune).where(
+                Commune.code_insee_commune == commune_to_create.code_insee_commune,
+                Commune.code_postal == commune_to_create.code_postal,
+                Commune.nom_commune == commune_to_create.nom_commune  # Comparaison exacte
+            )
+        ).first()
+        
+        if existing:
+            return existing
+        
+        #  Elle n'existe pas => on la crée
+        commune = Commune.model_validate(commune_to_create.model_dump())
+        session.add(commune)
+        session.commit()
+        session.refresh(commune)
+        
+        return commune
+    
+    
+    @staticmethod
+    def get_by_code_postal(session: Session, code_postal: str) -> list[Commune]:
+        """Récupère toutes les communes d'un code postal"""
+        return session.exec(
+            select(Commune).where(Commune.code_postal == code_postal)
+        ).all()
+    
+    @staticmethod
+    def get_by_code_insee(session: Session, code_insee: str) -> list[Commune]:
+        """Récupère toutes les entrées d'un code INSEE"""
+        return session.exec(
+            select(Commune).where(Commune.code_insee_commune == code_insee)
+        ).all()
+    
+    @staticmethod
+    def get_by_code_insee_and_cp(session: Session, code_insee: str, cp: str) -> Commune:
+        """Récupère toutes les entrées d'une commune par son code INSEE et son code postal"""
+        return session.exec(
+            select(Commune).where(Commune.code_insee_commune == code_insee, Commune.code_postal == cp)
+        ).first()
+
+commune_crud = CommuneCRUD()
+
+
+'''
 # crud/commune.py
 from sqlmodel import Session, select
 from typing import List, Optional
 from ..models.commune import Commune, CommuneCreate, CommuneUpdate
+
+
 
 class CommuneCRUD:
     """Classe CRUD pour les opérations sur les communes"""
@@ -70,3 +133,4 @@ class CommuneCRUD:
 
 # Instance globale
 commune_crud = CommuneCRUD()
+'''

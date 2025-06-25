@@ -74,3 +74,21 @@ uvicorn app.main:app --reload
 ├── README.md
 └── requirements.txt
 
+
+
+# PostgreSQL : Processus de sauvegarde et restauration de la base de donnees 
+
+## Sauvegarde
+### Prérequis : Avoir un fichier .env convenablement configuré
+```bash
+cd PROJECT_DIRECTORY/bddpg
+chmod +x save_pgsql.sh
+./save_pgsql.sh
+```
+
+## Restauration
+```bash
+cd PROJECT_DIRECTORY/bddpg
+chmod +x restore_pgsql.sh
+./restore_pgsql.sh {DB_NAME}_dump_${TIMESTAMP}.sql.gz
+```

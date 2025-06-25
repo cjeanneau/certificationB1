@@ -37,9 +37,8 @@ class BienImmobilierCRUD:
         pour éviter les doublons avant un insert
         """
         statement = select(BienImmobilier).where(
-        BienImmobilier.code_insee_commune == bien_data.code_insee_commune,
+        BienImmobilier.id_commune == bien_data.id_commune,
         BienImmobilier.adresse_normalisee == bien_data.adresse_normalisee,
-        BienImmobilier.code_postal == bien_data.code_postal,
         BienImmobilier.reference_cadastrale_parcelle == bien_data.reference_cadastrale_parcelle,
         BienImmobilier.type_bien == bien_data.type_bien,
         BienImmobilier.surface_reelle_bati == bien_data.surface_reelle_bati,
@@ -48,10 +47,10 @@ class BienImmobilierCRUD:
         )
         return session.exec(statement).first()
 
-    def get_by_commune(self, session: Session, code_insee: str) -> List[BienImmobilier]:
+    def get_by_id_commune(self, session: Session, id_commune: str) -> List[BienImmobilier]:
         """Récupère tous les biens d'une commune"""
         statement = select(BienImmobilier).where(
-            BienImmobilier.code_insee_commune == code_insee
+            BienImmobilier.id_commune == id_commune
         )
         return list(session.exec(statement).all())
     
@@ -70,7 +69,7 @@ class BienImmobilierCRUD:
         )
         return list(session.exec(statement).all())
     
-    def get_with_commune(self, session: Session, id_bien: int) -> Optional[BienImmobilier]:
+    def get_with_id_bien(self, session: Session, id_bien: int) -> Optional[BienImmobilier]:
         """Récupère un bien avec les informations de sa commune"""
         statement = select(BienImmobilier).where(
             BienImmobilier.id_bien == id_bien
@@ -109,17 +108,6 @@ class BienImmobilierCRUD:
         session.commit()
         return True
     
-    def count(self, session: Session) -> int:
-        """Compte le nombre total de biens immobiliers"""
-        statement = select(BienImmobilier)
-        return len(list(session.exec(statement).all()))
-    
-    def count_by_commune(self, session: Session, code_insee: str) -> int:
-        """Compte le nombre de biens dans une commune"""
-        statement = select(BienImmobilier).where(
-            BienImmobilier.code_insee_commune == code_insee
-        )
-        return len(list(session.exec(statement).all()))
 
 # Instance globale
 bien_immobilier_crud = BienImmobilierCRUD()

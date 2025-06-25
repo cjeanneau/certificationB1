@@ -52,7 +52,7 @@ class DPEServices:
         }
         
         try:
-            response = requests.get(DPEService.base_url_dpe, params=params, timeout=10)
+            response = requests.get(DPEServices.base_url_dpe, params=params, timeout=10)
             response.raise_for_status()
             result = response.json()
             if result:
@@ -94,7 +94,7 @@ class DPEServices:
         }
         
         try:
-            response = requests.get(DPEService.base_url_dpe, params=params, timeout=10)
+            response = requests.get(DPEServices.base_url_dpe, params=params, timeout=10)
             response.raise_for_status()
             result = response.json()
             dpe = result.get('results', {})
