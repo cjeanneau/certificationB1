@@ -47,6 +47,13 @@ class CommuneCRUD:
         return session.exec(
             select(Commune).where(Commune.code_insee_commune == code_insee)
         ).all()
+    
+    @staticmethod
+    def get_by_code_insee_and_cp(session: Session, code_insee: str, cp: str) -> Commune:
+        """Récupère toutes les entrées d'une commune par son code INSEE et son code postal"""
+        return session.exec(
+            select(Commune).where(Commune.code_insee_commune == code_insee, Commune.code_postal == cp)
+        ).first()
 
 commune_crud = CommuneCRUD()
 

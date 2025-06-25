@@ -1,11 +1,11 @@
 # models/__init__.py
 from .commune import (
     Commune, CommuneBase, CommuneCreate, CommuneRead, 
-    CommuneUpdate, CommuneReadWithBiens
+    CommuneUpdate, #CommuneReadWithBiens
 )
 from .bien_immobilier import (
     BienImmobilier, BienImmobilierBase, BienImmobilierCreate, 
-    BienImmobilierRead, BienImmobilierUpdate, BienImmobilierReadWithRelations
+    BienImmobilierRead, BienImmobilierUpdate, #BienImmobilierReadWithRelations
 )
 from .transaction_dvf import (
     TransactionDVF, TransactionDVFBase, TransactionDVFCreate,
@@ -20,10 +20,10 @@ from .user import User, UserLogin, UserCreate, UserResponse, Token
 __all__ = [
     # Commune
     "Commune", "CommuneBase", "CommuneCreate", "CommuneRead", 
-    "CommuneUpdate", "CommuneReadWithBiens",
+    "CommuneUpdate", #"CommuneReadWithBiens",
     # Bien Immobilier
     "BienImmobilier", "BienImmobilierBase", "BienImmobilierCreate", 
-    "BienImmobilierRead", "BienImmobilierUpdate", "BienImmobilierReadWithRelations",
+    "BienImmobilierRead", "BienImmobilierUpdate", #"BienImmobilierReadWithRelations",
     # Transaction DVF
     "TransactionDVF", "TransactionDVFBase", "TransactionDVFCreate",
     "TransactionDVFRead", "TransactionDVFUpdate", "TransactionDVFReadWithBien",
