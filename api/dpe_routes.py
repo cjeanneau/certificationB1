@@ -13,7 +13,7 @@ def get_recent_dpes(cp: str, nb_jour: int = 30):
     
     """Récupérer tous les dpe depuis une date """
     try:
-        dpes = DPEService.retrieve_recent_dpe_by_cp(cp, nb_jour)
+        dpes = DPEServices.retrieve_recent_dpe_by_cp(cp, nb_jour)
         if dpes is None:
             raise HTTPException(status_code=404, detail="Aucun DPE trouvé pour ce code postal")
         return dpes
@@ -26,7 +26,7 @@ def get_recent_dpes(cp: str, nb_jour: int = 30):
 def get_dpe_by_num(num_dpe: str):
     """Récupérer un DPE spécifique par son numéro de DPE"""
     try:
-        dpe = DPEService.retrieve_dpe_by_num_dpe(num_dpe)
+        dpe = DPEServices.retrieve_dpe_by_num_dpe(num_dpe)
         if not dpe:
             raise HTTPException(status_code=404, detail="DPE non trouvé")
         return dpe
