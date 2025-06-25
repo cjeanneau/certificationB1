@@ -432,26 +432,66 @@ class EvalServices:
         Returns:
             dict: Dictionnaire contenant les villes du premier anneau
         """
-        print (commune_graph_service.get_communes_limitrophes(code_insee))
+        # Requête simple pour prix moyen au m2 d'un code INSEE
+        sql_request = """
+        SELECT ROUND(AVG(t.valeur_fonciere::numeric / NULLIF(bi.surface_reelle_bati, 0)), 2) as prix_m2_moyen
+        FROM transaction_dvf t
+        JOIN bien_immobilier bi ON t.id_bien = bi.id_bien
+        JOIN commune c ON bi.id_commune = c.id_commune
+        WHERE c.code_insee_commune = :code_insee_commune
+        AND bi.surface_reelle_bati > 0
+        AND t.valeur_fonciere > 0
+        """
+        commune_name = None
+
         try:
-            # On récupère les communes limitrophes
+            commune_name = commune_graph_service.get_commune_name_by_code_insee(code_insee)
             limitrophes = commune_graph_service.get_communes_limitrophes(code_insee)
             
             if not limitrophes:
                 return error_response(
-                    message=f"Aucune commune limitrophe trouvée pour le code INSEE {code_insee}",
+                    message=f"Aucune commune limitrophe trouvée pour {commune_name}",
                     error_code="NO_LIMITROPHES_FOUND"
                 )
             
+            with get_session_sync() as session:
+                
+                result_central = session.connection().execute(
+                    text(sql_request), 
+                    {"code_insee_commune": code_insee}
+                ).first()
+                commune_central_prix_moyen = float(result_central.prix_m2_moyen) if result_central and result_central.prix_m2_moyen else 0.0
+                
+                communes_avec_prix = []
+                for commune in limitrophes:
+                    
+                    result = session.connection().execute(
+                        text(sql_request), 
+                        {"code_insee_commune": commune["code_commune"]}
+                    ).first()
+                    
+                    prix_moyen = float(result.prix_m2_moyen) if result and result.prix_m2_moyen else 0.0
+                    
+                    communes_avec_prix.append({
+                        "nom": commune["nom"],
+                        "code_commune": commune["code_commune"],
+                        "direction": commune["direction"],
+                        "prix_m2_moyen": prix_moyen
+                    })
+
             return success_response(
-                data=limitrophes,
-                message=f"Communes limitrophes pour le code INSEE {code_insee} récupérées avec succès.",
-                count=len(limitrophes)
+                data={
+                    "commune_centrale": commune_name,
+                    "prix_m2_moyen": commune_central_prix_moyen,
+                    "communes_limitrophes": communes_avec_prix
+                },
+                message=f"Premier anneau de {commune_name} récupéré avec succès.",
+                count=len(communes_avec_prix)
             )
         
         except Exception as e:
             return error_response(
-                message=f"Erreur lors de la récupération des communes limitrophes pour le code INSEE {code_insee}: {str(e)}",
+                message=f"Erreur lors de la récupération des communes limitrophes pour la commune de {commune_name}, code INSEE {code_insee}: {str(e)}",
                 error_code="DATABASE_ERROR",
                 details={
                     "code_insee": code_insee,
