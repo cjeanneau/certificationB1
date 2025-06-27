@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from sqlmodel import SQLModel, select
 
 
-from bddpg import get_session_sync, commune_crud, create_db_and_tables
-from bddn4j import commune_graph_service, neo4j_service
+from bddpg import get_session_sync, create_db_and_tables
+from bddn4j import neo4j_service
 
 from api.auth_routes import router as auth_router
 from api.dpe_routes import router as dpe_router
@@ -42,9 +42,10 @@ def welcome():
             "postgresql": "Données DVF et DPE"
         },
         "endpoints": {
-            "info": ["GET /", "GET /health"],
-            "communes": "À implémenter selon vos besoins",
-            "dvf": "À implémenter selon vos besoins"
+            "auth" : ["POST /auth/login", "POST /auth/register", "POST /auth/logout", "GET /auth/me", "GET /auth/users"], 
+            "dpe" : ["GET /dpe/recent", "GET /dpe/{num_dpe}"],
+            "eval": ["GET /eval/by_cp", "GET /eval/by_insee", "GET /eval/"],
+             "info": ["GET /", "GET /health"],
         }
     }
 
@@ -56,7 +57,7 @@ def health_check():
         with get_session_sync() as session:
             # Test de connexion à PostgreSQL
             #result = session.exec(select(Commune).limit(1))
-            result = commune_crud.get_all(session)
+            result = get_session_sync()
             postgres_status = "ok" if result else "error"
             postgres_data = "available" if result else "unavailable"
 
