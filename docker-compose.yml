@@ -12,15 +12,12 @@ services:
       - "7687:7687"                            # Port Bolt pour connexions Python (bolt://localhost:7687)
     environment:
       # Authentification personnalisée
-      - NEO4J_AUTH=neo4j/admin_neo4j           # Format: user/password
+      - NEO4J_AUTH=neo4j/${NEO4J_PASSWORD}          # Format: user/password
       
       # Plugin APOC pour fonctions avancées d'opérations sur graphes
       - NEO4J_PLUGINS=["apoc"]                 # Active le plugin APOC
       - NEO4J_dbms_security_procedures_unrestricted=apoc.*  # Autorise toutes les procédures APOC
       
-      # Configuration de développement (optionnel - pour de meilleures perfs)
-      #- NEO4J_dbms_memory_heap_initial__size=512M
-      #- NEO4J_dbms_memory_heap_max__size=1G
     volumes:
       # Persistance des données Neo4j (survit aux redémarrages)
       - neo4j_data:/data
@@ -40,22 +37,18 @@ services:
       - "5432:5432"                            # Port standard PostgreSQL (localhost:5432)
     environment:
       # Authentification et base par défaut
-      - POSTGRES_USER=admin                    # Utilisateur principal
-      - POSTGRES_PASSWORD=admin_postgres       # Mot de passe
-      - POSTGRES_DB=immo_db                    # Base de données créée automatiquement
+      - POSTGRES_USER=${POSTGRES_USER}                   # Utilisateur principal
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}       # Mot de passe
+      - POSTGRES_DB=${POSTGRES_DB}                  # Base de données créée automatiquement
       
-      # Configuration locale (optionnel)
-      #- POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=fr_FR.UTF-8 --lc-ctype=fr_FR.UTF-8
     volumes:
       # Persistance des données PostgreSQL
       - postgres_data:/var/lib/postgresql/data
       
-      # Scripts d'initialisation (optionnel)
-      # - ./init-scripts:/docker-entrypoint-initdb.d
     restart: unless-stopped                    # Redémarre automatiquement sauf si arrêté manuellement
 
 # ===== VOLUMES PERSISTANTS =====
-# Ces volumes stockent les données sur le disque dur de ton PC
+# Ces volumes stockent les données sur le disque dur local
 # Ils survivent aux arrêts/redémarrages des conteneurs
 volumes:
   neo4j_data:                                  # Données Neo4j (graphes, index, etc.)
