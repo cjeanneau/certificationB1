@@ -4,7 +4,7 @@ from bddpg import User, UserLogin, UserCreate, get_session_sync
 from schemas import success_response
 from auth import AuthService, require_admin, get_current_active_user
 
-router = APIRouter(prefix="/api/v1/auth", tags=["authentication"])
+router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
 
 @router.post("/register")
 def register(user_data: UserCreate, db: Session = Depends(get_session_sync)):
