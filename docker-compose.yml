@@ -1,7 +1,5 @@
 # docker-compose.yml
 # Configuration simplifiée pour développement avec Neo4j + PostgreSQL
-version: '3.8'
-
 services:
   # ===== BASE DE DONNÉES NEO4J =====
   neo4j:

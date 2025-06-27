@@ -1,10 +1,10 @@
 # Projet de certification Dev IA Bloc1
 
-### 1. Cloner le dépôt
+### 1. Cloner le dépôt.
 
 ```bash
-git clone PROJECT_DIRECTORY
-   cd PROJECT_DIRECTORY
+git clone https://github.com/THIS_REPOSITORY
+cd PROJECT_DIRECTORY
 ```
 ### 2. Copier .env.example en .env
 ```bash
@@ -13,7 +13,7 @@ cp .env.example .env
 
 ### 3.Editer et compléter le fichier .env
 ```bash
-nano .env # ou tout autre édietru de votre choix
+nano .env # ou tout autre éditeur de votre choix
 ```
 
 ### 4. Démarrage/arrêt des containers contenant les Bases de données Neo4j et PostgreSql
@@ -22,29 +22,48 @@ nano .env # ou tout autre édietru de votre choix
 docker-compose up       # pour démarrer les containers
 # docker-compose down     # pour arrêter les containers
 ```
+
 ### 5. Vérification du fonctionnement
+
+Dans un autre terminal,
 ```bash 
+cd PROJECT_DIRECTORY
 docker-compose ps
 docker-compose logs
 ```
 
 ## Récolte des donnees et remplissage des bases
 
-### 6. script de remplissage des bases
+Récupérer les fichiers sources de données voulues avec au minimum :
+- le fichier 'codes_communes.csv'
+- au moins un fichier DVF(ValeursFoncieres-aaaa.txt)
+et les stocker dans le répertoire /data
+
+Pour tester, le fichier codes_communes.csv et un fichier DVF de 2024 pour le départment 37 sont présents dans le répertoire data.
+
+
+
+### 6. Mise en place de l'environnement 
+```bash
+cd PROJECT_DIRECTORY
+python -m venv ENV
+source ENV/bin/activate 
+pip install -r requirements.txt
+```
+
+### 7. script de remplissage des bases
 ```bash
 python load_data.py #  script dont les lignes peuvent etre commentées
 ```
 
 ## Démarrage de l'application fastapi
 
-### 7. Mise en place de l'environnement 
+### 8. Creationn des utilisateurs et de leur role
 ```bash
- python3 -m venv ENV
- source ENV/bin/activate 
- pip install -r requirements.txt
- ```
+python create_users.py
+```
 
- ### 8. Démarrage du serveur fastapi
+### 9. Démarrage du serveur fastapi
 ```bash
 python main.py
 ```
@@ -65,7 +84,7 @@ Interface web : localhost:7474
 
 ## Structure du projet 
 
-.
+```
 ├── api
 │   ├── __init__.py
 │   ├── auth_routes.py
@@ -114,7 +133,7 @@ Interface web : localhost:7474
 ├── main.py
 ├── README.md
 └── requirements.txt
-
+```
 
 
 ## PostgreSQL : Processus de sauvegarde et restauration de la base de donnees 

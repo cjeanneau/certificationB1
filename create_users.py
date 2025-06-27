@@ -3,6 +3,7 @@ import os
 
 from bddpg import create_db_and_tables, get_session_sync, User
 from auth import JWTHandler
+from sqlmodel import select
 
 def create_default_users():
     """Créer des utilisateurs par défaut pour les tests"""
@@ -25,8 +26,8 @@ def create_default_users():
             "role": "user"
         },
         {
-            "email": "user@immodb.com",
-            "password": "user",
+            "email": "jack@immodb.com",
+            "password": "rose",
             "role": "user"
         }
     ]
@@ -35,7 +36,7 @@ def create_default_users():
     try:
         for user_data in default_users:
             # Vérifier si l'utilisateur existe déjà
-            existing = db.query(User).filter(User.email == user_data["email"]).first()
+            existing = db.exec(select(User).where(User.email == user_data["email"])).first()
             if existing:
                 print(f"Oopsy... {user_data['email']} existe déjà")
                 continue

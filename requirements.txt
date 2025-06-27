@@ -1,15 +1,19 @@
-# requirements.txt
-dotenv==0.9.9
-pandas==2.2.3
-
-requests==2.31.0
-beautifulsoup4==4.12.2
+app==0.0.1
+bcrypt==3.2.2
+beautifulsoup4==4.13.4
+chardet==5.2.0
+email_validator==2.2.0
+fastapi==0.115.14
 neo4j==5.15.0
-lxml==4.9.3
-
-psycopg2-binary==2.9.10  # Il faudra peut-etre le retirer si utilisation de SQLAlchemy
+pandas==2.3.0
+passlib==1.7.4
+passlib[bcrypt]==1.7.4
+psycopg2_binary==2.9.10
+pydantic==2.11.7
+python-dotenv==1.1.1
+python_jose==3.5.0
+python-jose[cryptography]==3.5.0
+Requests==2.32.4
 SQLAlchemy==2.0.41
-sqlmodel 
-
-fastapi 
-uvicorn
+sqlmodel==0.0.24
+uvicorn==0.34.3

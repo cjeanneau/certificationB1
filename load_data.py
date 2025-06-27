@@ -27,7 +27,7 @@ def main():
     print("Remplissage des transactions DVF terminé.")
     
     print("Remplissage du graphe des communes limitrophes...")
-    #fill_graphe()
+    fill_graphe()
     print("Remplissage du graphe des communes limitrophes terminé.")
 
     print("Processus terminé.")
