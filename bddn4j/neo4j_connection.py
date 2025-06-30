@@ -15,13 +15,27 @@ class Neo4jService:
             self.driver.close()
     
     def execute_query(self, query: str, parameters: Optional[Dict] = None) -> List[Dict[str, Any]]:
-        """Exécute une requête et retourne les résultats"""
+        """ Exécute une requête et retourne les résultats
+        Args:
+            query (str): La requête Cypher à exécuter.
+            parameters (Optional[Dict]): Les paramètres de la requête.
+        Returns:
+            List[Dict[str, Any]]: Une liste de dictionnaires contenant les résultats de la requête.
+        """
+
         with self.driver.session() as session:
             result = session.run(query, parameters or {})
             return [record.data() for record in result]
     
     def execute_write(self, query: str, parameters: Optional[Dict] = None) -> Optional[Dict[str, Any]]:
-        """Exécute une requête d'écriture"""
+        """ Exécute une requête d'écriture
+        Args:
+            query (str): La requête Cypher à exécuter.
+            parameters (Optional[Dict]): Les paramètres de la requête.
+        Returns:
+            Optional[Dict[str, Any]]: Un dictionnaire contenant le premier résultat de la requête, ou None si aucun résultat n'est trouvé.
+        """
+        
         with self.driver.session() as session:
             result = session.run(query, parameters or {})
             return result.single()

@@ -7,7 +7,14 @@ class CommuneGraphService:
         self.neo4j = neo4j_service
     
     def create_temporary_commune_and_return_id(self, nom: str, url: str = None, scraped: bool = False) -> Optional[int]:
-        """Crée une commune et retourne son ID Neo4j ou None si l'opération échoue."""
+        """ Cette méthode est utilisée pour créer un nœud temporaire avant de le mettre à jour avec les informations complètes de la commune.
+        Args:
+            nom (str): Nom de la commune
+            url (str): URL de la commune (optionnel)
+            scraped (bool): Indique si la commune a été scrappée (par défaut False)
+        Returns:
+            Optional[int]: ID du nœud créé ou None si l'opération échoue
+        """
         
         query = """
         MERGE (c:Commune {nom: $nom, url: $url}) 
@@ -25,7 +32,19 @@ class CommuneGraphService:
     
 
     def create_commune_and_return_id(self, nom: str, pays: str, departement: str, code_postaux: str, code_commune: str, region: str = None, url: str = None, scraped: bool = False) -> Optional[int]:
-        """Crée une commune et retourne son ID Neo4j ou None si l'opération échoue"""
+        """ Crée une commune et retourne son ID Neo4j ou None si l'opération échoue
+        Args:
+            nom (str): Nom de la commune
+            pays (str): Pays de la commune
+            departement (str): Département de la commune
+            code_postaux (str): Code postal de la commune
+            code_commune (str): Code INSEE de la commune
+            region (str): Région de la commune (optionnel)
+            url (str): URL de la commune (optionnel)
+            scraped (bool): Indique si la commune a été scrappée (par défaut False)
+        Returns:
+            Optional[int]: ID du nœud créé ou None si l'opération échoue
+        """
         
         # On cherche d'abord à mettre à jour un nœud existant basé sur nom et url
         # (car c'est comme ça que le nœud temporaire a été créé)
@@ -59,7 +78,15 @@ class CommuneGraphService:
         
     # Méthodes avec graphe orienté
     def add_relation_limitrophe(self, code_commune_origin: str, code_commune_target: str, direction: str):
-        """Ajoute une relation limitrophe **ORIENTE** entre deux communes"""
+        """ Ajoute une relation limitrophe **ORIENTE** entre deux communes
+        Args:
+            code_commune_origin (str): Code INSEE de la commune d'origine
+            code_commune_target (str): Code INSEE de la commune cible
+            direction (str): Direction de la relation (par exemple, "NORD", "SUD", "EST", "OUEST")
+        Returns:
+            Dict: Dictionnaire contenant la relation créée
+        """
+
         query = """
         MATCH (c1:Commune {code_commune: $code_origin})
         MATCH (c2:Commune {code_commune: $code_target})
@@ -72,25 +99,17 @@ class CommuneGraphService:
             'code_target': code_commune_target,
             'direction': direction
         })
-    
-    def add_relation_limitrophe_by_id_bak(self, node_id_origin: int, node_id_target: int, direction: str):
-        """Ajoute une relation limitrophe en utilisant les IDs des nœuds"""
-        query = """
-        MATCH (c1:Commune) WHERE id(c1) = $id_origin
-        MATCH (c2:Commune) WHERE id(c2) = $id_target
-        MERGE (c1)-[r:LIMITROPHE {direction: $direction}]->(c2)
-        SET r.created_at = datetime()
-        RETURN r
-        """
-        return self.neo4j.execute_write(query, {
-            'id_origin': node_id_origin,
-            'id_target': node_id_target,
-            'direction': direction
-        })
-    
 
     def add_relation_limitrophe_by_id(self, node_id_origin: int, node_id_target: int, direction: str):
-        """Ajoute une relation limitrophe en utilisant les IDs des nœuds"""
+        """ Ajoute une relation limitrophe en utilisant les IDs des nœuds
+        Args:
+            node_id_origin (int): ID du nœud d'origine
+            node_id_target (int): ID du nœud cible
+            direction (str): Direction de la relation (par exemple, "NORD", "SUD", "EST", "OUEST")
+        Returns:
+            Dict: Dictionnaire contenant la relation créée
+        """
+
         query = """
         MATCH (c1:Commune) WHERE id(c1) = $id_origin
         MATCH (c2:Commune) WHERE id(c2) = $id_target
@@ -109,7 +128,13 @@ class CommuneGraphService:
         })
     
     def get_communes_limitrophes(self, code_commune: str) -> List[Dict]:
-        """Récupère toutes les communes limitrophes (**ORIENTE**)"""
+        """ Récupère toutes les communes limitrophes (**ORIENTE**)
+        Args:
+            code_commune (str): Code INSEE de la commune pour laquelle on veut les limitrophes
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes limitrophes
+        """
+
         query = """
         MATCH (c:Commune {code_commune: $code_commune})-[r:LIMITROPHE]->(limitrophe:Commune)
         RETURN limitrophe.nom as nom, 
@@ -121,7 +146,13 @@ class CommuneGraphService:
         return self.neo4j.execute_query(query, {'code_commune': code_commune})
     
     def get_commune_name_by_code_insee(self, code_commune: str) -> Optional[str]:
-        """Récupère le nom d'une commune par son code insee"""
+        """ Récupère le nom d'une commune par son code insee
+        Args:
+            code_commune (str): Code INSEE de la commune
+        Returns:
+            Optional[str]: Nom de la commune ou None si non trouvé
+        """
+
         query = """
         MATCH (c:Commune {code_commune: $code_commune})
         RETURN c.nom as nom
@@ -131,7 +162,13 @@ class CommuneGraphService:
     
 
     def get_commune_id_by_name(self, nom: str) -> Optional[int]:
-        """Récupère l'ID d'une commune par son nom"""
+        """ Récupère l'ID d'une commune par son nom
+        Args:
+            nom (str): Nom de la commune
+        Returns:
+            Optional[int]: ID du nœud de la commune ou None si non trouvé
+        """
+
         query = """
         MATCH (c:Commune {nom: $nom})
         RETURN id(c) as node_id
@@ -140,7 +177,14 @@ class CommuneGraphService:
         return result[0]['node_id'] if result else None
 
     def get_commune_id_by_name_and_url(self, nom: str, url: str) -> Optional[int]:
-        """Récupère l'ID d'une commune par son nom"""
+        """ Récupère l'ID d'une commune par son nom
+        Args:
+            nom (str): Nom de la commune
+            url (str): URL de la commune
+        Returns:
+            Optional[int]: ID du nœud de la commune ou None si non trouvé
+        """
+
         query = """
         MATCH (c:Commune {nom: $nom, url: $url})
         RETURN id(c) as node_id
@@ -150,7 +194,14 @@ class CommuneGraphService:
 
 
     def get_communes_by_direction(self, code_commune: str, direction: str) -> List[Dict]:
-        """Récupère les communes dans une direction spécifique"""
+        """ Récupère les communes dans une direction spécifique 
+        Args:
+            code_commune (str): Code INSEE de la commune de référence
+            direction (str): Direction de la relation (par exemple, "NORD", "SUD", "EST", "OUEST")
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes limitrophes dans la direction spécifiée
+        """
+
         query = """
         MATCH (c:Commune {code_commune: $code_commune})-[r:LIMITROPHE {direction: $direction}]->(limitrophe:Commune)
         RETURN limitrophe.name as name, 
@@ -164,7 +215,13 @@ class CommuneGraphService:
         })
     
     def mark_commune_as_scraped(self, code_commune: str):
-        """Marque une commune comme scrappée"""
+        """ Marque une commune comme scrappée
+        Args:
+            code_commune (str): Code INSEE de la commune à marquer comme scrapp
+        Returns:
+            Dict: Dictionnaire contenant la commune mise à jour
+        """
+
         query = """
         MATCH (c:Commune {code_commune: $code_commune})
         SET c.scraped = true, c.scraped_at = datetime()
@@ -173,7 +230,13 @@ class CommuneGraphService:
         return self.neo4j.execute_write(query, {'code_commune': code_commune})
     
     def mark_commune_as_scraped_by_id(self, node_id: int):
-        """Marque une commune comme scrappée"""
+        """ Marque une commune comme scrappée
+        Args:
+            node_id (int): ID du nœud de la commune à marquer comme scrappée
+        Returns:
+            Dict: Dictionnaire contenant la commune mise à jour
+        """
+
         query = """
         MATCH (c:Commune) WHERE id(c) = $id
         SET c.scraped = true, c.scraped_at = datetime()
@@ -182,7 +245,11 @@ class CommuneGraphService:
         return self.neo4j.execute_write(query, {'id': node_id})
     
     def get_communes_not_scraped(self) -> List[Dict]:
-        """Récupère les communes pas encore scrappées"""
+        """ Récupère les communes pas encore scrappées
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes non scrappées
+        """
+
         query = """
         MATCH (c:Commune)
         WHERE c.scraped = false OR c.scraped IS NULL
@@ -192,7 +259,13 @@ class CommuneGraphService:
         return self.neo4j.execute_query(query)
     
     def get_communes_not_scraped_by_region(self, region: str = None) -> List[Dict]:
-        """Récupère les communes pas encore scrappées d'une région spécifique"""
+        """ Récupère les communes pas encore scrappées d'une région spécifique
+        Args:
+            region (str): Nom de la région (optionnel, si None, récupère toutes les communes non scrappées)
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes non scrappées dans la région spécifiée
+        """
+
         query = """
         MATCH (c:Commune)
         WHERE (c.scraped = false OR c.scraped IS NULL)
@@ -203,7 +276,13 @@ class CommuneGraphService:
         return self.neo4j.execute_query(query, {'region': region})
     
     def get_communes_not_scraped_by_departement(self, departement: str) -> List[Dict]:
-        """Récupère les communes pas encore scrappées d'un département spécifique"""
+        """ Récupère les communes pas encore scrappées d'un département spécifique
+        Args:
+            departement (str): Nom du département
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes non scrappées dans le département spécifié
+        """
+
         query = """
         MATCH (c:Commune)
         WHERE (c.scraped = false OR c.scraped IS NULL)
@@ -214,7 +293,13 @@ class CommuneGraphService:
         return self.neo4j.execute_query(query, {'departement': departement})
 
     def get_communes_not_scraped_by_pays(self, pays: str) -> List[Dict]:
-        """Récupère les communes pas encore scrappées d'un pays spécifique"""
+        """ Récupère les communes pas encore scrappées d'un pays spécifique
+        Args:
+            pays (str): Nom du pays
+        Returns:
+            List[Dict]: Liste de dictionnaires contenant les informations des communes non scrappées dans le pays spécifié
+        """
+
         query = """
         MATCH (c:Commune)
         WHERE (c.scraped = false OR c.scraped IS NULL)
@@ -225,17 +310,12 @@ class CommuneGraphService:
         return self.neo4j.execute_query(query, {'pays': pays})
 
 
-    def get_commune_stats(self, code_commune: str) -> Dict:
-        """Statistiques d'une commune (nombre de voisins par direction)"""
-        query = """
-        MATCH (c:Commune {code_commune: $code_commune})-[r:LIMITROPHE]->(limitrophe:Commune)
-        RETURN r.direction as direction, count(limitrophe) as count
-        ORDER BY direction
-        """
-        return self.neo4j.execute_query(query, {'code_commune': code_commune})
-
     def get_nombre_total_noeuds(self) -> int:
-        """Récupère le nombre total de nœuds dans la base de données"""
+        """ Récupère le nombre total de nœuds dans la base de données
+        Returns:
+            int: Nombre total de nœuds
+        """
+
         query = """
         MATCH (n)
         RETURN count(n) as total_nodes
@@ -244,7 +324,11 @@ class CommuneGraphService:
         return result[0]['total_nodes'] if result else 0
     
     def clear_database(self):
-        """Supprime toutes les communes et relations"""
+        """ Supprime toutes les communes et relations
+        Returns:
+            bool: True si la base de données a été nettoyée avec succès, False sinon
+        """ 
+
         query = """
         MATCH (n)
         DETACH DELETE n
@@ -261,6 +345,7 @@ class CommuneGraphService:
         Returns:
             bool: True si suppression réussie, False sinon
         """
+
         query = """
         MATCH (c:Commune) WHERE id(c) = $node_id
         DETACH DELETE c
@@ -288,9 +373,9 @@ if __name__ == "__main__":
     
     
     # Créer ou mettre à jour une commune
-    commune_graph_service.create_commune(nom="Tours", code_commune="37000", pays="fr", departement="IetL",code_postaux="37000", region="Test Region", url="http://example.com", scraped=False)
+    commune_graph_service.create_commune(nom="Tours", code_commune="37000", pays="fr", departement="Indre et Loire",code_postaux="37000", region="Centre", url="https://fr.wikipedia.org/wiki/Tours", scraped=False)
     print("Commune Tours créée ou mise à jour.")
-    commune_graph_service.create_commune(nom="Mettray", code_commune="37130", pays="fr", departement="IetL",code_postaux="37000", region="Test Region", url="http://example.com/test2", scraped=False)
+    commune_graph_service.create_commune(nom="Mettray", code_commune="37130", pays="fr", departement="Indre et Lorie",code_postaux="37390", region="Centre", url="https://fr.wikipedia.org/wiki/Mettray", scraped=False)
     print("Commune Mettray créée ou mise à jour.")
 
     # Ajouter une relation limitrophe orientée

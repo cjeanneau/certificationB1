@@ -22,6 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 def fill_graphe():
+    """    Fonction principale pour remplir la base de données Neo4j avec les communes et leurs relations limitrophes
+    Cette fonction initialise la base de données avec la commune de départ (Tours) et scrappe les communes limitrophes.
+    Elle effectue plusieurs itérations pour s'assurer que toutes les communes sont correctement scrappées
+    et que les relations entre elles sont établies.
+    """
     # Efface la la base de données Neo4j avant de commencer
     commune_graph_service.clear_database()
 
@@ -44,6 +49,14 @@ def fill_graphe():
         #input()
 
 def init_a_node(nom,url):
+    """ Initialise un noeud pour une commune donnée avec son nom et son URL.
+    Args:
+        nom (str): Le nom de la commune.
+        url (str): L'URL de la page de la commune.
+    Returns:
+        None
+    """
+
     try:
         logger.info(f"Initialisation du noeud pour la commune : {nom} - URL : {url}")
         id_node = commune_graph_service.create_temporary_commune_and_return_id(
@@ -56,6 +69,12 @@ def init_a_node(nom,url):
         return None
     
 def process_communes_not_scrapped():
+    """Traite les communes qui n'ont pas encore été scrappées.
+    Cette fonction récupère la liste des communes à scrapper, vérifie si elles appartiennent
+    au département "Indre-et-Loire", et scrappe les informations de chaque commune.
+    Si une commune n'appartient pas au département, son noeud est supprimé de la base de données.
+    """
+
     # on récupère la liste des communes à srcapper
     communes_to_be_scrapped = commune_graph_service.get_communes_not_scraped()
     
@@ -78,7 +97,14 @@ def process_communes_not_scrapped():
 
 
 def isin_departement(dpt: str, soup: BeautifulSoup) -> bool:
-    """Vérifie si la commune appartient à la région spécifiée"""
+    """Vérifie si la commune appartient à la région spécifiée
+    Args:
+        dpt (str): Le nom du département à vérifier (ex: "Indre-et-Loire").
+        soup (BeautifulSoup): L'objet BeautifulSoup contenant le HTML de la page de la commune.
+    Returns:
+        bool: True si la commune appartient au département, False sinon.
+    """
+
     # Ici on pourrait implémenter une logique plus complexe pour vérifier la région
     # Par exemple, en utilisant une liste de communes connues de cette région
     # Pour l'instant, on va juste vérifier si le nom de la commune contient le nom de la région
@@ -99,7 +125,14 @@ def isin_departement(dpt: str, soup: BeautifulSoup) -> bool:
     return False    
 
 def process_single_commune(commune: dict, soup: BeautifulSoup) -> bool:
-    """Traite une seule commune - retourne True si traitement réussi"""
+    """ Traite une seule commune - retourne True si traitement réussi
+    Args:
+        commune (dict): Dictionnaire contenant les informations de la commune (nom, url, etc.).
+        soup (BeautifulSoup): L'objet BeautifulSoup contenant le HTML de la page de la commune.
+    Returns:
+        bool: True si le traitement de la commune a réussi, False sinon.
+    """
+
     #logger.info(f"{commune['nom']} - ({commune['url']})")
     
     #if not commune['url']:
@@ -157,7 +190,14 @@ def process_single_commune(commune: dict, soup: BeautifulSoup) -> bool:
         return False
 
 def process_commune_limitrophes(id_origin: int, communes_limitrophes: dict):
-    """Traite les communes limitrophes et crée les relations"""
+    """Traite les communes limitrophes et crée les relations
+    Args:
+        id_origin (int): L'ID de la commune d'origine.
+        communes_limitrophes (dict): Dictionnaire contenant les communes limitrophes avec leur direction.
+    Returns:
+        None
+    """
+    
     for direction, commune_to_register in communes_limitrophes.items():
         print(f"Orientation : {direction} : ")
         for commune_limits in commune_to_register:

@@ -13,7 +13,16 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_session_sync)
 ):
-    """Dépendance pour récupérer l'utilisateur actuel"""
+    """ Dépendance pour récupérer l'utilisateur actuel
+    Args:
+        credentials (HTTPAuthorizationCredentials): Les informations d'authentification HTTP
+        db (Session): Session de base de données
+    Returns:
+        User: L'utilisateur correspondant au token
+    Raises:
+        HTTPException: Si le token est invalide, expiré ou si l'utilisateur n'existe pas
+    """
+
     try:
         token = credentials.credentials
         user = AuthService.get_current_user(db, token)
@@ -26,7 +35,15 @@ def get_current_user(
         )
 
 def get_current_active_user(current_user = Depends(get_current_user)):
-    """Dépendance pour vérifier que l'utilisateur est actif"""
+    """ Dépendance pour vérifier que l'utilisateur est actif
+    Args:
+        current_user (User): L'utilisateur actuel récupéré par la dépendance get_current_user
+    Returns:
+        User: L'utilisateur actif
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas actif
+    """
+
     if not current_user.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -35,7 +52,15 @@ def get_current_active_user(current_user = Depends(get_current_user)):
     return current_user
 
 def require_admin(current_user = Depends(get_current_active_user)):
-    """Dépendance pour vérifier que l'utilisateur est admin"""
+    """ Dépendance pour vérifier que l'utilisateur est admin
+    Args:
+        current_user (User): L'utilisateur actif récupéré par la dépendance get_current_active_user
+    Returns:
+        User: L'utilisateur actif avec le rôle admin
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas admin
+    """
+
     if current_user.role != "admin":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -44,7 +69,15 @@ def require_admin(current_user = Depends(get_current_active_user)):
     return current_user
 
 def require_user_or_admin(current_user = Depends(get_current_active_user)):
-    """Dépendance pour vérifier que l'utilisateur est connecté (user ou admin)"""
+    """ Dépendance pour vérifier que l'utilisateur est connecté (user ou admin)
+    Args:
+        current_user (User): L'utilisateur actif récupéré par la dépendance get_current_active_user
+    Returns:
+        User: L'utilisateur actif avec le rôle user ou admin
+    Raises:
+        HTTPException: Si l'utilisateur n'est pas connecté ou n'a pas les droits requis
+    """
+    
     if current_user.role not in ["user", "admin"]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

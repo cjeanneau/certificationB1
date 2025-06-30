@@ -7,7 +7,7 @@ from sqlmodel import select
 
 def create_default_users():
     """Créer des utilisateurs par défaut pour les tests"""
-    print("👥 Création des utilisateurs par défaut")
+    print(" Création des utilisateurs par défaut")
     print("=" * 40)
     
     # Créer les tables si nécessaire

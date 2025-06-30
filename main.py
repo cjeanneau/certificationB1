@@ -29,7 +29,9 @@ app.include_router(eval_router)     # Routes pour l'évaluation immobilière
 @app.get("/")
 def welcome():
     return {
-        "message": "API Immobilier v1.0 - Multi-bases ! 🏠📊",
+        "message": "API Immobilier v1.0 - Multi-bases de données",
+        "version": "1.0.0",
+        "author": "Cyril Jeanneau",
         "description": "Données immobilières et communes limitrophes",
         "features": [
             "Graphe des communes (Neo4j)",
@@ -105,4 +107,3 @@ if __name__ == "__main__":
     uvicorn.run("main:app", host="localhost", port=8000, reload=True)
     print("API Immobilier démarrée sur http://localhost:8000")
     print("Utilisez Swagger UI pour explorer les endpoints : http://localhost:8000/docs")
-    print("Bonne utilisation ! 🏠📊")

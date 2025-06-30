@@ -39,6 +39,7 @@ def load_communes_file(file_path : str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame contenant les données des communes
     """
+
     start_time = time.time()
 
     colonnes_to_keep = [
@@ -68,6 +69,7 @@ def detect_encoding(file_path: str) -> str:
     Returns:
         str: L'encodage détecté
     """
+
     with open(file_path, 'rb') as file:
         raw_data = file.read()
         result = chardet.detect(raw_data)
@@ -105,24 +107,6 @@ def load_communes_to_PG(df_communes: pd.DataFrame):
             logger.error(f"Erreur: {str(e)}")
             raise
 
-    '''    
-    with Session(engine) as session:
-        try:
-            for _, row in df_communes.iterrows():
-                commune = CommuneCreate(
-                    code_insee_commune=row['#code_commune_insee'],
-                    nom_commune=row['nom_de_la_commune'],
-                    code_postal=row['code_postal']
-                )
-                if not commune_crud.get_by_code_insee(session, commune.code_insee_commune):
-                    created_commune = commune_crud.create(session, commune)
-                    logger.info(f"Commune créée: {created_commune}")
-                else:
-                    logger.info(f"La commune {row['nom_de_la_commune']} existe déjà, pas de création.")
-        except Exception as e:
-            logger.error(f"Erreur lors de l'enregistrement des communes: {str(e)}")
-            raise
-    '''
 
 
 def fill_communes():
@@ -135,6 +119,7 @@ def fill_communes():
     Returns:
         None
     """
+    
     file_location = os.path.join(DATA_DIR, "codes_communes.csv")
     logger.info("Début de l'enregistrement des communes dans la base de données PostgreSQL...")
     df_communes = load_communes_file(file_location)

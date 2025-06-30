@@ -2,9 +2,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-
+from config import JWT_SECRET_KEY
 # Configuration JWT simple
 SECRET_KEY = "votre_cle_secrete_super_securisee_123456789"  # En production, utilisez une vraie clé secrète !
+#SECRET_KEY = JWT_SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
@@ -16,17 +17,38 @@ class JWTHandler:
     
     @staticmethod
     def hash_password(password: str) -> str:
-        """Hacher un mot de passe"""
+        """ Hacher un mot de passe
+        Args:
+            password (str): Mot de passe en clair
+        Returns:
+            str: Mot de passe haché
+        """
+
         return pwd_context.hash(password)
     
     @staticmethod
     def verify_password(plain_password: str, hashed_password: str) -> bool:
-        """Vérifier un mot de passe"""
+        """ Vérifier un mot de passe 
+        Args:
+            plain_password (str): Mot de passe en clair
+            hashed_password (str): Mot de passe haché
+        Returns:
+            bool: True si le mot de passe correspond, False sinon
+        """
+
         return pwd_context.verify(plain_password, hashed_password)
     
     @staticmethod
     def create_access_token(user_id: int, email: str, role: str) -> str:
-        """Créer un token JWT"""
+        """ Créer un token JWT
+        Args:
+            user_id (int): ID de l'utilisateur
+            email (str): Email de l'utilisateur
+            role (str): Rôle de l'utilisateur (par exemple, "admin", "user")
+        Returns:
+            str: Token JWT encodé
+        """
+
         expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         
         payload = {
@@ -42,7 +64,13 @@ class JWTHandler:
     
     @staticmethod
     def decode_token(token: str) -> Optional[dict]:
-        """Décoder et valider un token JWT"""
+        """ Décoder et valider un token JWT
+        Args:
+            token (str): Token JWT à décoder
+        Returns:
+            Optional[dict]: Payload décodé si le token est valide, None sinon
+        """
+        
         try:
             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
             

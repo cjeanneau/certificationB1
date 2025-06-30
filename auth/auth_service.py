@@ -9,7 +9,15 @@ class AuthService:
     
     @staticmethod
     def create_user(db: Session, user_data: UserCreate):
-        """Créer un nouvel utilisateur"""
+        """ Créer un nouvel utilisateur
+        Args:
+            db (Session): Session de base de données
+            user_data (UserCreate): Données de l'utilisateur à créer
+        Returns:
+            UserResponse: Réponse avec les détails de l'utilisateur créé
+        Raises:
+            ValueError: Si l'email existe déjà ou si le rôle est invalide
+        """
         # Vérifier si l'email existe déjà
         existing_user = db.query(User).filter(User.email == user_data.email).first()
         if existing_user:
@@ -41,7 +49,16 @@ class AuthService:
     
     @staticmethod
     def login(db: Session, login_data: UserLogin):
-        """Connecter un utilisateur"""
+        """ Connecter un utilisateur
+        Args:
+            db (Session): Session de base de données
+            login_data (UserLogin): Données de connexion de l'utilisateur
+        Returns:
+            Token: Réponse avec le token d'accès et les infos utilisateur
+        Raises:
+            ValueError: Si l'email ou le mot de passe est incorrect, ou si le compte est désactivé
+        """
+
         # Chercher l'utilisateur par email
         user = db.query(User).filter(User.email == login_data.email).first()
         if not user:
@@ -78,7 +95,16 @@ class AuthService:
     
     @staticmethod
     def get_current_user(db: Session, token: str) -> User:
-        """Récupérer l'utilisateur actuel depuis le token"""
+        """ Récupérer l'utilisateur actuel depuis le token 
+        Args:
+            db (Session): Session de base de données
+            token (str): Token JWT de l'utilisateur
+        Returns:
+            User: L'utilisateur correspondant au token
+        Raises:
+            ValueError: Si le token est invalide, expiré ou si l'utilisateur n'existe pas
+        """
+
         # Décoder le token
         payload = JWTHandler.decode_token(token)
         if not payload:
@@ -100,7 +126,15 @@ class AuthService:
     
     @staticmethod
     def get_all_users(db: Session):
-        """Récupérer tous les utilisateurs (admin seulement)"""
+        """ Récupérer tous les utilisateurs (admin seulement)
+        Args:
+            db (Session): Session de base de données
+        Returns:
+            success_response: Réponse avec la liste des utilisateurs
+        Raises:
+            ValueError: Si l'utilisateur n'est pas admin
+        """ 
+        
         users = db.query(User).all()
         user_responses = [UserResponse.from_orm(user) for user in users]
         

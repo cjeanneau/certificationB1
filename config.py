@@ -31,3 +31,4 @@ API_TITLE = "conseil immo"
 API_VERSION = "1.0"
 API_DESCRIPTION = "Pour aider les investisseurs dans leurs investissements"
 
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")

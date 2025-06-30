@@ -40,6 +40,7 @@ def load_dvf_file(file_path: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame contenant les données du fichier DVF
     """
+
     df = pd.DataFrame()
     # Vérification de l'existence du fichier
     if not os.path.exists(file_path):
@@ -113,6 +114,7 @@ def clean_dvf_data(df: pd.DataFrame) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame nettoyé
     """
+
     # On supprime les lignes dont la nature de mutation est 'Echange'
     df = df[df['Nature mutation'] != 'Echange']
     
@@ -198,11 +200,11 @@ def load_dvf_to_PG(df: pd.DataFrame, idx: Optional[int] = None):
     
     Parameters:
         df (pd.DataFrame): DataFrame contenant les données DVF
-        index (int): Index de départ pour l'enregistrement des transactions (par défaut 0)
-    
+        idx (Optional[int]): Index à partir duquel reprendre le traitement, si None on commence à 0 
     Returns:
         None
     """
+
     # Si idx est spécifié, commencer à partir de cet index
     if idx is not None:
         start_index = idx
@@ -358,11 +360,16 @@ def load_dvf_to_PG(df: pd.DataFrame, idx: Optional[int] = None):
 def fill_dvf(idx: Optional[int] = None):
     """
     Fonction principale pour charger, nettoyer et enregistrer les données DVF dans la base de données PostgreSQL.
-    
     Elle traite les fichiers contenu dans {DATA_DIR} qui commencent par "ValeursFoncieres-" et se terminent par ".txt".
     Elle charge les données dans un DataFrame, les nettoie, puis les enregistre dans la base de données postgreSQL.
     
+    Args:
+        idx (Optional[int]): Index à partir duquel reprendre le traitement, si None on commence
+        à 0
+    Returns:
+        None
     """
+    
     start_time = time.time()
     intermediate_time = start_time
     for file in os.listdir(DATA_DIR):

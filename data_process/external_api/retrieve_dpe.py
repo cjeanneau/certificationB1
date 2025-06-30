@@ -38,6 +38,7 @@ def retrieve_all_dpe_by_date(date_etablissement: str) -> list:
 
     *** Note : cette méthode utilise l'URL de la page suivante fournie par l'API ***
     """
+
     base_url_dpe = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant/lines"
     all_results = []
     page_size = 1000
@@ -156,6 +157,7 @@ def retrieve_dpe_by_identifiant_ban(identifiant_ban: str) -> dict:
     Returns:
         dict: Le DPE correspondant à l'identifiant BAN, ou None si non trouvé.
     """
+
     base_url_dpe = "https://data.ademe.fr/data-fair/api/v1/datasets/dpe03existant/lines"
     params = {
         'qs': f"identifiant_ban:{identifiant_ban}",
@@ -186,6 +188,7 @@ def test_retrieve_all():
     Returns:
         None
     """
+    
     date_etablissement = "2025-05-27"  # Exemple de date
     dpe_list = retrieve_all_dpe_by_date(date_etablissement)
     
